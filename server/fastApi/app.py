@@ -1,8 +1,4 @@
 from fastapi import FastAPI
-from server.fastApi.modules.dailyChallengeManagement import getChallengeData
-from server.fastApi.modules.dailyMateInXChallengeManagement import getMateInXChallengeData
-from server.fastApi.modules.mobileDataLoader import getMobileItemData
-from server.fastApi.modules.subscriberManagement import addUpdateSubscriber
 from src.DataBaseConstants import RESULT, SUCCESS
 from starlette.staticfiles import StaticFiles
 from pydantic import BaseModel
