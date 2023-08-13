@@ -1,3 +1,4 @@
+USER_ID="uid"
 EMAIL_ID = "email"
 PURCHASED = "purchased"
 CREATED = "created"

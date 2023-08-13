@@ -3,11 +3,11 @@ import os
 
 from pymongo import MongoClient
 
-MONGO_DB_NAME = "calorie_data"
+MONGO_DB_NAME = "chatbot_data"
 
 
 class MongoDBCollections:
-    EMAIL_SUBSCRIBERS_COLLECTION = "chatbot_email_subscribers"
+    USERS_COLLECTION = "chatbot_users"
 
 
 class MongoManager:
@@ -34,8 +34,8 @@ def getCollection():
     return MongoManager.getInstance()
 
 
-def getEmailSubscribersCollection():
-    return MongoManager.getInstance()[MongoDBCollections.EMAIL_SUBSCRIBERS_COLLECTION]
+def getUsersCollection():
+    return MongoManager.getInstance()[MongoDBCollections.USERS_COLLECTION]
 
 
 if __name__ == '__main__':
