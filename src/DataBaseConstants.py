@@ -1,36 +1,22 @@
 USER_ID="uid"
 EMAIL_ID = "email"
-PURCHASED = "purchased"
-CREATED = "created"
-ACTIVATED = "activated"
-UNSUBSCRIBED = "unsubscribed"
-LAST_CHALLENGE_INDEX = "last_challenge_index"
-LAST_MATE_IN_X_INDEX = "last_mate_in_x_index"
-LAST_QUOTE_INDEX = "last_quote_index"
+
+CHATBOT_ID="chatbot_id"
+CHATBOT_NAME="chatbot_name"
+CHATBOT_STATUS="chatbot_status"
+
+CHATBOT_LIST="CHATBOT_LIST"
 
 
-QUOTES = "quotes"
-INFO = "info"
-FEN = "fen"
-WHITE = "white"
-BLACK = "black"
+CONTENT_ID="content_id"
+CONTENT="content"
+SOURCE="source"
+SOURCE_TYPE="source_type"
+LAST_UPDATED="last_updated"
+CHAR_COUNT="char_count"
 
-MATE_IN = "mate_in"
-
-WHITE_PLAYER = "white_player"
-BLACK_PLAYER = "black_player"
-WINNER = "winner"
-LOOSER = "looser"
-MOVES_HISTORY = "moves_history"
-MOVES_EXPECTED = "moves_expected"
-SITE = "site"
-EVENT = "event"
-YEAR = "year"
-COMMENT = "comment"
-LOCATION = "location"
+URL='url'
 
 SUCCESS = "success"
 RESULT = "result"
 
-DATA = "data"
-DATA_TYPE = "data_type"

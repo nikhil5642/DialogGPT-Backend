@@ -8,6 +8,8 @@ MONGO_DB_NAME = "chatbot_data"
 
 class MongoDBCollections:
     USERS_COLLECTION = "chatbot_users"
+    CHATBOTS_COLLECTION = "chatbot_list"
+    CONTENT_COLLECTION = "content_list"
 
 
 class MongoManager:
@@ -37,6 +39,11 @@ def getCollection():
 def getUsersCollection():
     return MongoManager.getInstance()[MongoDBCollections.USERS_COLLECTION]
 
+def getChatBotsCollection():
+    return MongoManager.getInstance()[MongoDBCollections.CHATBOTS_COLLECTION]
+
+def getContentStoreCollection():
+    return MongoManager.getInstance()[MongoDBCollections.CONTENT_COLLECTION]
 
 if __name__ == '__main__':
     db = MongoManager.getInstance()
