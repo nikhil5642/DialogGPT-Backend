@@ -57,7 +57,7 @@ def url_mappings_to_storable_content(mapping):
     contentList=[]
     contentMappingList=[]
     for key, value in mapping.items():
-        contentID=uuid.uuid4()
+        contentID=str(uuid.uuid4())
         contentList.append({CONTENT_ID:contentID,CONTENT:value})
         contentMappingList.append({CONTENT_ID:contentID, SOURCE:key,SOURCE_TYPE:URL,CHAR_COUNT:len(value),LAST_UPDATED:datetime.now()})
     return contentList,contentMappingList

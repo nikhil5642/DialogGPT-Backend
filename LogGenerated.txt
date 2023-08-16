@@ -14146,3 +14146,26 @@
 08/17/2023 02:43:00 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
 08/17/2023 02:44:13 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
 08/17/2023 02:44:13 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 02:57:04 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 02:57:04 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 02:57:35 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 02:57:35 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 02:58:24 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 02:58:24 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 02:59:19 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 02:59:19 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 02:59:58 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 02:59:58 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 03:01:40 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 03:01:40 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 03:02:01 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 03:02:01 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 03:02:06 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 03:02:06 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 03:02:07 AM DEBUG databaseManagement.py Line:21 Chatbot creating initialted UID: 291a1124-9525-44af-a8df-db56a3d1ddc3
+08/17/2023 03:02:39 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 03:02:39 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 03:04:36 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 03:04:36 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 03:04:41 AM DEBUG databaseManagement.py Line:21 Chatbot creating initialted UID: f1846bd6-7364-4d74-b950-31ccfb740213
+08/17/2023 03:04:42 AM DEBUG databaseManagement.py Line:21 Chatbot creating initialted UID: 206684ee-b8fe-4bb8-b194-fe8c34e471f2

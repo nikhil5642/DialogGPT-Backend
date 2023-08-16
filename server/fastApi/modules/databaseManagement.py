@@ -7,18 +7,18 @@ import uuid
 def createUserIfNotExist(uid:str,email:str):
     if not getUsersCollection().find_one({USER_ID:uid}):
         getUsersCollection().insert_one({USER_ID:uid,EMAIL_ID:email})
-        GlobalLogger.debug("User created successfully UID: "+uid)
+        GlobalLogger().debug("User created successfully UID: "+uid)
         
 def createChatBot(uid:str):
     user = getUsersCollection().find_one({USER_ID: uid})
     if user is None:
         HTTPException(status_code=404, detail="Something Went wrong")
-    botID=uuid.uuid4()
+    botID=str(uuid.uuid4())
     bot_id_list = user.get(CHATBOT_LIST, [])
     bot_id_list.append({CHATBOT_ID:botID,CHATBOT_NAME:"Untitled Bot",CHATBOT_STATUS:'untrained'})
-    getUsersCollection().update_one({"USER_ID": uid}, {"$set": {CHATBOT_LIST: bot_id_list}})
+    getUsersCollection().update_one({USER_ID: uid}, {"$set": {CHATBOT_LIST: bot_id_list}})
     getChatBotsCollection().insert_one({USER_ID:uid,CHATBOT_ID:botID})
-    GlobalLogger.debug("Chatbot creating initialted UID: "+botID)
+    GlobalLogger().debug("Chatbot creating initialted UID: "+botID)
     return botID
 
 def myChatBotsList(uid:str):
