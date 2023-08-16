@@ -14169,3 +14169,6 @@
 08/17/2023 03:04:36 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
 08/17/2023 03:04:41 AM DEBUG databaseManagement.py Line:21 Chatbot creating initialted UID: f1846bd6-7364-4d74-b950-31ccfb740213
 08/17/2023 03:04:42 AM DEBUG databaseManagement.py Line:21 Chatbot creating initialted UID: 206684ee-b8fe-4bb8-b194-fe8c34e471f2
+08/17/2023 03:07:02 AM INFO utils.py Line:148 Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+08/17/2023 03:07:02 AM INFO utils.py Line:160 NumExpr defaulting to 8 threads.
+08/17/2023 03:07:17 AM DEBUG databaseManagement.py Line:21 Chatbot creating initialted UID: 3cd4cf8e-a7f9-4000-b662-2a841cfc0e1a

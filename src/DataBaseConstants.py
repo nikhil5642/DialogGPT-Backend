@@ -5,7 +5,7 @@ CHATBOT_ID="chatbot_id"
 CHATBOT_NAME="chatbot_name"
 CHATBOT_STATUS="chatbot_status"
 
-CHATBOT_LIST="CHATBOT_LIST"
+CHATBOT_LIST="chatbot_list"
 
 
 CONTENT_ID="content_id"
