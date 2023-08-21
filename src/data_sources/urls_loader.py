@@ -2,9 +2,20 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 from langchain.docstore.document import Document
-from src.DataBaseConstants import CONTENT_ID, CONTENT,SOURCE,SOURCE_TYPE,LAST_UPDATED,CHAR_COUNT, URL
-from datetime import datetime
+from server.fastApi.modules.databaseManagement import getContentMappingList, insertContentListInBotCollection, storeContentList
+from src.DataBaseConstants import SOURCE,SOURCE_TYPE, URL
+from src.data_sources.utils import generateContentItem, generateContentMappingItem
 import uuid
+
+def get_url_list_mapping(urls):
+    mappings={}
+    for url in urls:
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, "lxml")
+            # Store the text content associated with the current URL
+            mappings[url]=' '.join(soup.stripped_strings)
+    return mappings
 
 def get_all_urls_mapping(base_url, max_depth=5):
     visited_urls = set()
@@ -58,8 +69,8 @@ def url_mappings_to_storable_content(mapping):
     contentMappingList=[]
     for key, value in mapping.items():
         contentID=str(uuid.uuid4())
-        contentList.append({CONTENT_ID:contentID,CONTENT:value})
-        contentMappingList.append({CONTENT_ID:contentID, SOURCE:key,SOURCE_TYPE:URL,CHAR_COUNT:len(value),LAST_UPDATED:datetime.now()})
+        contentList.append(generateContentItem(contentID,value))
+        contentMappingList.append(generateContentMappingItem(contentID,key,URL,value))
     return contentList,contentMappingList
 
 
@@ -68,3 +79,24 @@ def url_mappings_to_Documents(mapping):
     for key, value in mapping.items():
         docsList.append(Document(page_content=value, metadata={"source": key,"source_type":"url"}))
     return docsList
+
+def get_filtered_content_mapping(uid:str,botID:str,mapping):
+    current_collections=getContentMappingList(uid,botID)
+    existing_urls = {item[SOURCE] for item in current_collections if item[SOURCE_TYPE] == URL}
+    filtered_mapping = {key: value for key, value in mapping.items() if key not in existing_urls}
+    contentList,contentMappingList=url_mappings_to_storable_content(filtered_mapping)
+    storeContentList(contentList)
+    current_collections.extend(contentMappingList)
+    insertContentListInBotCollection(uid,botID,current_collections)
+    return contentMappingList
+        
+def get_final_content_mapping(uid:str,botID:str,mapping):
+    current_collections=getContentMappingList(uid,botID)
+    existing_urls = {item[SOURCE] for item in current_collections if item[SOURCE_TYPE] == URL}
+    filtered_mapping = {key: value for key, value in mapping.items() if key not in existing_urls}
+    contentList,contentMappingList=url_mappings_to_storable_content(filtered_mapping)
+    storeContentList(contentList)
+    current_collections.extend(contentMappingList)
+    insertContentListInBotCollection(uid,botID,current_collections)
+    return current_collections
+                

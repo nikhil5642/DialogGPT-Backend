@@ -7,15 +7,25 @@ CHATBOT_STATUS="chatbot_status"
 
 CHATBOT_LIST="chatbot_list"
 
-
 CONTENT_ID="content_id"
 CONTENT="content"
+CONTENT_LIST="content_list"
 SOURCE="source"
 SOURCE_TYPE="source_type"
 LAST_UPDATED="last_updated"
 CHAR_COUNT="char_count"
+STATUS="status"
+TRAINED="trained"
+TRAINING="training"
+UNTRAINED="untrained"
+
+NEWLY_ADDED="newlyAdded"
 
 URL='url'
+TEXT="text"
+
+REPLY="reply"
+QUERY="query"
 
 SUCCESS = "success"
 RESULT = "result"
