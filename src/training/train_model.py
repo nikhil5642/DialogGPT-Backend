@@ -25,7 +25,7 @@ def getDocumentsList(contentIDList):
         
     docList=[]
     for item in contentIDList:
-        docList.append(Document(page_content=contentMapping[item[CONTENT_ID]], metadata={SOURCE: item[SOURCE_TYPE],SOURCE_TYPE:"link"}))
+        docList.append(Document(page_content=contentMapping[item[CONTENT_ID]], metadata={SOURCE: item[SOURCE],SOURCE_TYPE:item[SOURCE_TYPE]}))
     return docList
 
 def trainChatBot(botID,contentIDList):

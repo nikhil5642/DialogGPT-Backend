@@ -13,6 +13,7 @@ CONTENT_LIST="content_list"
 SOURCE="source"
 SOURCE_TYPE="source_type"
 LAST_UPDATED="last_updated"
+CREATED_ON="created_on"
 CHAR_COUNT="char_count"
 STATUS="status"
 TRAINED="trained"
@@ -29,4 +30,5 @@ QUERY="query"
 
 SUCCESS = "success"
 RESULT = "result"
+ERROR="error"
 

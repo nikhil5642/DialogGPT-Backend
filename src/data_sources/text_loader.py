@@ -14,5 +14,5 @@ def saveText(uid:str,botID:str,text:str):
         contentList.append(content)
         insertContentListInBotCollection(uid,botID,contentList)
     else:
-        updateContent(content[CONTENT_ID],text)
+        updateContent(uid,botID,content[CONTENT_ID],text)
     return content
