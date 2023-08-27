@@ -4,7 +4,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.docstore.document import Document
 from DataBase.MongoDB import getContentStoreCollection
 from src.DataBaseConstants import CHATBOT_ID, SOURCE,SOURCE_TYPE,CONTENT_ID,CONTENT
-import pinecone
+# import pinecone
 from langchain.vectorstores import Chroma
 from uuid import uuid4
 from tqdm.auto import tqdm
@@ -12,10 +12,10 @@ import shutil
 
 from src.logger.logger import GlobalLogger
 
-PINECONE_API_KEY = "87a0ff8e-534a-47cc-97bc-4ba9aac009e0"
+# PINECONE_API_KEY = "87a0ff8e-534a-47cc-97bc-4ba9aac009e0"
 OPENAI_API_KEY='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'
 
-PINECONE_ENV = "us-west4-gcp-free"
+# PINECONE_ENV = "us-west4-gcp-free"
 
 def getDocumentsList(contentIDList):
     idList=[item[CONTENT_ID] for item in contentIDList]

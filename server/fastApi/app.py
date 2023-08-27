@@ -17,8 +17,8 @@ app = FastAPI()
 
 
 origins = ["http://localhost:3000",
-           "https://www.chessmeito.com",
-           "https://chessmeito.com"]
+           "https://www.dialoggpt.io",
+           "https://dialoggpt.io"]
 
 app.add_middleware(
     CORSMiddleware,
