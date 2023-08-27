@@ -1,0 +1,5 @@
+08/27/2023 08:29:00 PM INFO utils.py Line:160 NumExpr defaulting to 1 threads.
+08/27/2023 08:30:50 PM INFO utils.py Line:160 NumExpr defaulting to 1 threads.
+08/27/2023 08:31:11 PM INFO utils.py Line:160 NumExpr defaulting to 1 threads.
+08/27/2023 08:31:12 PM DEBUG connectionpool.py Line:939 Starting new HTTPS connection (1): controller.us-west1-gcp.pinecone.io:443
+08/27/2023 08:31:12 PM DEBUG connectionpool.py Line:433 https://controller.us-west1-gcp.pinecone.io:443 "GET /actions/whoami HTTP/1.1" 401 114
