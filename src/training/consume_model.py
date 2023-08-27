@@ -4,7 +4,7 @@ from langchain import PromptTemplate
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.embeddings.openai import OpenAIEmbeddings
 #import pinecone
-from src.training.train_model import OPENAI_API_KEY,
+from src.training.train_model import OPENAI_API_KEY
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import Chroma
