@@ -24,10 +24,16 @@ def get_all_urls_mapping(base_url, max_depth=5):
     
     while urls_to_visit and len(visited_urls)<100:
         url, depth = urls_to_visit.pop(0)
-        print(url)
         if url in visited_urls or depth > max_depth:
             continue
         try:
+            response = requests.head(url)
+            content_type = response.headers.get("Content-Type", "")
+            
+            if "text/html" not in content_type:
+                # Skip non-HTML URLs
+                continue
+            
             response = requests.get(url)
             if response.status_code == 200:
                 visited_urls.add(url)
