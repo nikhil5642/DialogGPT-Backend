@@ -6,6 +6,8 @@ from server.fastApi.modules.databaseManagement import getContentMappingList, ins
 from src.DataBaseConstants import SOURCE,SOURCE_TYPE, URL
 from src.data_sources.utils import generateContentItem, generateContentMappingItem
 import uuid
+import re
+
 
 def get_url_list_mapping(urls):
     mappings={}
@@ -16,6 +18,10 @@ def get_url_list_mapping(urls):
             # Store the text content associated with the current URL
             mappings[url]=' '.join(soup.stripped_strings)
     return mappings
+
+def isValidUrl(url):
+    pattern = r'^(https?:\/\/)([\da-z.-]+)\.([a-z]{2,6})([\/\w .-]*)*\/?$'
+    return bool(re.match(pattern, url))
 
 def get_all_urls_mapping(base_url, max_depth=5):
     visited_urls = set()
@@ -43,7 +49,7 @@ def get_all_urls_mapping(base_url, max_depth=5):
                 for link in soup.find_all("a", href=True):
                     new_url = urljoin(base_url, link["href"])
                     parsed_url = urlparse(url)
-                    if parsed_url.netloc == urlparse(base_url).netloc and not parsed_url.fragment:
+                    if parsed_url.netloc == urlparse(base_url).netloc and not parsed_url.fragment and isValidUrl(new_url):
                         urls_to_visit.append((new_url, depth + 1))
 
                 # Store the text content associated with the current URL

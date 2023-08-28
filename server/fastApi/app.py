@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from src.data_sources.text_loader import saveText
 from datetime import datetime
-from src.data_sources.urls_loader import get_all_urls_mapping, get_filtered_content_mapping, get_final_content_mapping, get_url_list_mapping
+from src.data_sources.urls_loader import get_all_urls_mapping, get_filtered_content_mapping, get_final_content_mapping, get_url_list_mapping, isValidUrl
 from src.training.consume_model import replyToQuery
 from src.training.train_model import trainChatBot
 
@@ -113,12 +113,15 @@ def myChatbotsContent(data:BaseChatBotModel,current_user: str = Depends(get_curr
         
 @app.post("/fetch_urls")
 def fetchURLs(data:URLModel,current_user: str = Depends(get_current_user)):
+    if not isValidUrl(data.url):
+        raise HTTPException(status_code=501, detail="Invalid URL")
+    
     try:
         mapping=get_all_urls_mapping(data.url,max_depth=5)
         contentMappingList=get_filtered_content_mapping(current_user,data.botID,mapping)
         return {SUCCESS:True, RESULT:contentMappingList }
     except:
-        raise HTTPException(status_code=404, detail="Something Went wrong")
+        raise HTTPException(status_code=501, detail="Something Went wrong")
     
     
 @app.post("/add_url")
