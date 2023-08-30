@@ -13,3 +13,5 @@ __pycache__/
 myenv/
 ENV/
 myenv.bak/
+
+LogGenerated.txt
