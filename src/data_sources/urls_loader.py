@@ -1,4 +1,3 @@
-import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 from langchain.docstore.document import Document
@@ -7,12 +6,13 @@ from src.DataBaseConstants import SOURCE,SOURCE_TYPE, URL
 from src.data_sources.utils import generateContentItem, generateContentMappingItem
 import uuid
 import re
-
+import cloudscraper
 
 def get_url_list_mapping(urls):
     mappings={}
+    scraper = cloudscraper.create_scraper() 
     for url in urls:
-        response = requests.get(url)
+        response = scraper.get(url)
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, "lxml")
             # Store the text content associated with the current URL
@@ -27,20 +27,20 @@ def get_all_urls_mapping(base_url, max_depth=5):
     visited_urls = set()
     urls_to_visit = [(base_url, 1)]  # Tuple with URL and depth
     url_text_mapping = {}  # Store URL and its associated text content
-    
+    scraper = cloudscraper.create_scraper() 
     while urls_to_visit and len(visited_urls)<100:
         url, depth = urls_to_visit.pop(0)
         if url in visited_urls or depth > max_depth:
             continue
         try:
-            response = requests.head(url)
+            response = scraper.head(url)
             content_type = response.headers.get("Content-Type", "")
             
             if "text/html" not in content_type:
                 # Skip non-HTML URLs
                 continue
             
-            response = requests.get(url)
+            response = scraper.get(url)
             if response.status_code == 200:
                 visited_urls.add(url)
                 soup = BeautifulSoup(response.content, "lxml")
