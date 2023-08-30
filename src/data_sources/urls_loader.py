@@ -28,6 +28,7 @@ def get_all_urls_mapping(base_url, max_depth=5):
     urls_to_visit = [(base_url, 1)]  # Tuple with URL and depth
     url_text_mapping = {}  # Store URL and its associated text content
     scraper = cloudscraper.create_scraper() 
+    base_netloc = urlparse(base_url).netloc 
     while urls_to_visit and len(visited_urls)<100:
         url, depth = urls_to_visit.pop(0)
         if url in visited_urls or depth > max_depth:
@@ -48,8 +49,9 @@ def get_all_urls_mapping(base_url, max_depth=5):
                 # Find and process all anchor tags (links) and their text content
                 for link in soup.find_all("a", href=True):
                     new_url = urljoin(base_url, link["href"])
-                    parsed_url = urlparse(url)
-                    if parsed_url.netloc == urlparse(base_url).netloc and not parsed_url.fragment and isValidUrl(new_url):
+                    parsed_url = urlparse(new_url)
+                    print(parsed_url.netloc,base_netloc)
+                    if parsed_url.netloc == base_netloc and not parsed_url.fragment and isValidUrl(new_url):
                         urls_to_visit.append((new_url, depth + 1))
 
                 # Store the text content associated with the current URL
