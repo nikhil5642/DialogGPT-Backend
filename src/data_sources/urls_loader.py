@@ -7,6 +7,7 @@ from src.data_sources.utils import generateContentItem, generateContentMappingIt
 import uuid
 import re
 import cloudscraper
+from src.logger.logger import GlobalLogger
 
 def get_url_list_mapping(urls):
     mappings={}
@@ -50,7 +51,6 @@ def get_all_urls_mapping(base_url, max_depth=5):
                 for link in soup.find_all("a", href=True):
                     new_url = urljoin(base_url, link["href"])
                     parsed_url = urlparse(new_url)
-                    print(parsed_url.netloc,base_netloc)
                     if parsed_url.netloc == base_netloc and not parsed_url.fragment and isValidUrl(new_url):
                         urls_to_visit.append((new_url, depth + 1))
 
@@ -58,8 +58,8 @@ def get_all_urls_mapping(base_url, max_depth=5):
                 page_text = ' '.join(soup.stripped_strings)
                 url_text_mapping[url] = page_text
         except Exception as e:
-            print(f"Error fetching URL: {url}")
-            print(e)
+            GlobalLogger().error(f"Error fetching URL: {url}")
+            GlobalLogger().error(e)
 
     return url_text_mapping
 
