@@ -1,5 +1,7 @@
+ID="id"
 USER_ID="uid"
 EMAIL_ID = "email"
+PLAN_ID="plan_id"
 
 CHATBOT_ID="chatbot_id"
 CHATBOT_NAME="chatbot_name"
@@ -32,3 +34,17 @@ SUCCESS = "success"
 RESULT = "result"
 ERROR="error"
 
+PRO_PLAN="pro"
+ESSENTIALS_PLAN="essential"
+FREE_PLAN="free"
+SUBSCRIPTION="subscription"
+SUBSCRIPTION_STATUS="subscription_status"
+SUBSCRIPTION_CANCELED="canceled"
+SUBSCRIPTION_PLAN="subscription_plan"
+SUBSCRIPTION_ID="subscription_id"
+
+MESSAGE_USED="message_used"
+MESSAGE_LIMIT="message_limit"
+
+COMPLETE="complete"
+CUSTOMER="customer"

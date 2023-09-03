@@ -1,8 +1,10 @@
 from typing import List
-from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks
+from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
+from fastapi.responses import RedirectResponse
 from DataBase.MongoDB import getChatBotsCollection, getUsersCollection
-from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, getChatBotInfo, getContent, getContentMappingList, getUserInfo, myChatBotsList, updateChatBotStatus, updateChatbotName
+from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getContent, getContentMappingList, getUserInfo, myChatBotsList, updateChatBotStatus, updateChatbotName
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
+from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook
 from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_LIST, LAST_UPDATED, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED
 from starlette.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -63,7 +65,9 @@ class TrainingModel(BaseChatBotModel):
 class ReplyModel(BaseChatBotModel):
     query:str
     history:List[List]
-
+    
+class SubscriptionModel(BaseModel):
+    planId: str
 
 @app.post("/authenticate")
 def authenticate(data:AuthenticationModel):
@@ -182,16 +186,44 @@ def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_use
 
 @app.post("/reply")
 def reply(reply:ReplyModel):
-    history=[]
-    for item in reply.history:
-        history.append((item[0],item[1]))
-    chat_reply=replyToQuery(reply.botID,reply.query,history)
-    return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
-
+    try:
+        history=[]
+        for item in reply.history:
+            history.append((item[0],item[1]))
+        chat_reply=replyToQuery(reply.botID,reply.query,history)
+        return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+    
 @app.post("/update_chatbot_name")
 def updateName(data:ChatBotNameChangeModel,current_user: str = Depends(get_current_user)):
     try:
         updateChatbotName(current_user,data.botID,data.chatBotName)
         return {SUCCESS:True}
     except:
-        return {SUCCESS:False,ERROR:"Something went wrong, Try Again!"}
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+
+@app.get("/current_subscription_plan")
+def subscriptionStatus(current_user: str = Depends(get_current_user)):
+    return {SUCCESS:True,RESULT:get_subscription_plan(current_user)}
+
+      
+@app.post("/create_checkout_session")
+def createCheckoutSessionApi(data:SubscriptionModel,current_user: str = Depends(get_current_user)):
+    try:
+        session =createStripeCheckoutSession(current_user,data.planId)
+        return {SUCCESS:True, RESULT: session}
+    except:
+        raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+      
+
+@app.post("/stripe-webhook")
+async def stripe_webhook(request: Request):
+    try:
+        payload = await request.body()
+        sig_header = request.headers.get('stripe-signature')
+        return  manageWebhook(payload,sig_header)
+    except:
+        raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+    
+    
