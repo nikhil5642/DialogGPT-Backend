@@ -130,7 +130,6 @@ def handle_subscription_creation(user_id,subscription_status,subscription_plan,s
     )
 
 def handle_subscription_update(user_id,subscription_status,subscription_plan):
-    print(user_id,subscription_status,subscription_plan)
         
     if(subscription_status==SUBSCRIPTION_CANCELED):
         getUsersCollection().update_one(
