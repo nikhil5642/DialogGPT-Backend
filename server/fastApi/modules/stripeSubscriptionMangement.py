@@ -4,11 +4,11 @@ from src.DataBaseConstants import CUSTOMER, STATUS, SUBSCRIPTION, SUBSCRIPTION_I
 import requests
 stripe.api_key="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"
 
-SUBSCRIPTION_PRO= "price_1NlcebSBubjVCHLvON7VCorm"
-SUBSCRIPTION_ESSENTIALS= "price_1NlcOLSBubjVCHLvMvpS6tnn" 
+SUBSCRIPTION_PRO= "price_1NmOk6SBubjVCHLvylBtaAiJ"
+SUBSCRIPTION_ESSENTIALS= "price_1NmOkFSBubjVCHLv5VowO0lM" 
 STRIPE_WEBHOOK_SECRET="whsec_rPIhd8WwG8gFqW5IctFOVcMB7Gxmd2kj" 
 CURRENCY_LAYER_API_KEY="cf717babe6b5b06c2d88c673cf345864"
-WEBSITE_BASE_URL="https://api.dialggpt.io"
+WEBSITE_BASE_URL="https://dialoggpt.io"
 
 def getPriceId(plan_id):
     if (plan_id==PRO_PLAN):
