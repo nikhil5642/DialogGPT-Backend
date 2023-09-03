@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from DataBase.MongoDB import getContentStoreCollection, getUsersCollection,getChatBotsCollection
-from src.DataBaseConstants import CONTENT_LIST, EMAIL_ID, LAST_UPDATED, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT
+from src.DataBaseConstants import COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, LAST_UPDATED, MESSAGE_LIMIT,MESSAGE_USED, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID
 from src.data_sources.utils import generateContentItem
 from src.logger.logger import GlobalLogger
 from typing import List, Dict
@@ -9,7 +9,8 @@ from datetime import datetime
 
 def createUserIfNotExist(uid:str,email:str):
     if not getUsersCollection().find_one({USER_ID:uid}):
-        getUsersCollection().insert_one({USER_ID:uid,EMAIL_ID:email})
+        getUsersCollection().insert_one({USER_ID:uid,EMAIL_ID:email,MESSAGE_USED:0,
+            MESSAGE_LIMIT:30,SUBSCRIPTION_PLAN:FREE_PLAN,SUBSCRIPTION_STATUS:COMPLETE})
         GlobalLogger().debug("User created successfully UID: "+uid)
 
 def getUserInfo(uid):
@@ -103,4 +104,65 @@ def storeContentList(list):
     
 def insertContentListInBotCollection(uid:str,botID:str,newContentList):
     getChatBotsCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {CONTENT_LIST: newContentList}})
+
+def get_subscription_plan(user_id: str) -> str:
+    user_document = getUsersCollection().find_one({USER_ID: user_id})
+    if user_document and SUBSCRIPTION_PLAN in user_document:
+        return user_document[SUBSCRIPTION_PLAN]
+    else:
+        return FREE_PLAN
+def get_subscription_id(user_id: str) -> str:
+    user_document = getUsersCollection().find_one({USER_ID: user_id})
+    if user_document and SUBSCRIPTION_ID in user_document:
+        return user_document[SUBSCRIPTION_ID]
+    else:
+        return None
+
+def handle_subscription_creation(user_id,subscription_status,subscription_plan,subscription_id,message_limit):
+    getUsersCollection().update_one(
+        {USER_ID: user_id},
+        {'$set': {
+            SUBSCRIPTION_STATUS: subscription_status,
+            SUBSCRIPTION_PLAN: subscription_plan,
+            SUBSCRIPTION_ID:subscription_id,
+            MESSAGE_LIMIT:message_limit
+        }}
+    )
+
+def handle_subscription_update(user_id,subscription_status,subscription_plan):
+        
+    if(subscription_status==SUBSCRIPTION_CANCELED):
+        getUsersCollection().update_one(
+        {USER_ID: user_id},
+        {'$set': {
+            SUBSCRIPTION_STATUS: subscription_status,
+            SUBSCRIPTION_PLAN: subscription_plan,
+            MESSAGE_LIMIT:30,
+            MESSAGE_USED:0
+        }}
+        )
+    else:
+        getUsersCollection().update_one(
+        {USER_ID: user_id},
+        {'$set': {
+            SUBSCRIPTION_STATUS: subscription_status,
+            SUBSCRIPTION_PLAN: subscription_plan,
+        }}
+    )
+    
+
+def handle_subscription_deletion(subscriptio_id):
+    getUsersCollection().update_one(
+        {SUBSCRIPTION_ID: subscriptio_id},
+        { '$unset': {
+            SUBSCRIPTION_STATUS: "",
+            SUBSCRIPTION_PLAN: FREE_PLAN,
+            SUBSCRIPTION_ID:None,
+            MESSAGE_LIMIT:30,
+            MESSAGE_USED:0
+            },
+         } 
+    )
+
+
 
