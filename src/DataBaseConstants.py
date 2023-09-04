@@ -48,3 +48,5 @@ MESSAGE_LIMIT="message_limit"
 
 COMPLETE="complete"
 CUSTOMER="customer"
+
+CHATBOT_LIMIT="chatbot_limit"
