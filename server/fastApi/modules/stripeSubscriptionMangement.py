@@ -2,15 +2,15 @@ import stripe
 from server.fastApi.modules.databaseManagement import get_subscription_id, handle_subscription_creation, handle_subscription_deletion, handle_subscription_update
 from src.DataBaseConstants import CUSTOMER, STATUS, SUBSCRIPTION, SUBSCRIPTION_ID,USER_ID,PLAN_ID,PRO_PLAN,ESSENTIALS_PLAN,ID
 import requests
-
 from src.scripts.chatbotUtils import getMessageLimitAsPerPlan
-stripe.api_key="sk_test_51NlWuWSBubjVCHLvXTVthdf3CsRtD7tCSGXjvzzPDOeCzLg9N8bZfcDAw1NW0VjjxiM1R6acM6grcYdODRETSaLJ007kodrpRe"
 
-SUBSCRIPTION_PRO= "price_1NlxGvSBubjVCHLvmpviAFyT" #Testing
-SUBSCRIPTION_ESSENTIALS= "price_1NlxMfSBubjVCHLvdV63Du11"  #Testing
-STRIPE_WEBHOOK_SECRET="whsec_u1mQ0SXb8IJ0k0XWPhQ1nMW6mXHLA4yi"  #Testing
+stripe.api_key="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"
+
+SUBSCRIPTION_PRO= "price_1NmOk6SBubjVCHLvylBtaAiJ"
+SUBSCRIPTION_ESSENTIALS= "price_1NmOkFSBubjVCHLv5VowO0lM" 
+STRIPE_WEBHOOK_SECRET="whsec_rPIhd8WwG8gFqW5IctFOVcMB7Gxmd2kj" 
 CURRENCY_LAYER_API_KEY="cf717babe6b5b06c2d88c673cf345864"
-WEBSITE_BASE_URL="http://localhost:3000"#Testing
+WEBSITE_BASE_URL="https://dialoggpt.io"
 
 def getPriceId(plan_id):
     if (plan_id==PRO_PLAN):
