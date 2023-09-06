@@ -91,7 +91,6 @@ def createBot(data:ChatBotCreationModel,current_user: str = Depends(get_current_
         botID=createChatBot(current_user,data.chatBotName)   
         return {SUCCESS:True,CHATBOT_ID:botID}
     except HTTPException as e:  # Catch the specific exception
-        print("exception",e)
         raise e  # Re-raise the caught exception
     except:
         raise HTTPException(status_code=501, detail="Something Went wrong")
