@@ -1,17 +1,17 @@
 from typing import List
 from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.responses import RedirectResponse
-from DataBase.MongoDB import getChatBotsCollection, getUsersCollection
-from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getContent, getContentMappingList, getUserInfo, myChatBotsList, updateChatBotStatus, updateChatbotName
+from DataBase.MongoDB import getChatBotsCollection
+from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getContent, getContentMappingList, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatbotName
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
 from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook
-from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_LIST, LAST_UPDATED, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED
+from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_LIST, LAST_UPDATED, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED,CHATBOT_LIMIT
 from starlette.staticfiles import StaticFiles
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from src.data_sources.text_loader import saveText
 from datetime import datetime
-from src.data_sources.urls_loader import get_all_urls_mapping, get_filtered_content_mapping, get_final_content_mapping, get_url_list_mapping, isValidUrl
+from src.data_sources.urls_loader import get_all_urls_mapping, get_filtered_content_mapping, get_url_list_mapping, isValidUrl
 from src.training.consume_model import replyToQuery
 from src.training.train_model import trainChatBot
 
@@ -90,18 +90,21 @@ def createBot(data:ChatBotCreationModel,current_user: str = Depends(get_current_
     try:
         botID=createChatBot(current_user,data.chatBotName)   
         return {SUCCESS:True,CHATBOT_ID:botID}
+    except HTTPException as e:  # Catch the specific exception
+        raise e  # Re-raise the caught exception
     except:
-        raise HTTPException(status_code=404, detail="Something Went wrong")
+        raise HTTPException(status_code=501, detail="Something Went wrong")
         
 @app.get("/my_chatbots")
 def myChatbots(current_user: str = Depends(get_current_user)):
     try:
-        return {SUCCESS:True, CHATBOT_LIST: myChatBotsList(current_user)}
+        chatbot_list,chatbot_limit=getUserChatBotInfo(current_user)
+        return {SUCCESS:True, CHATBOT_LIST: chatbot_list,CHATBOT_LIMIT:chatbot_limit}
     except:
         return {SUCCESS:False}
     
 @app.post("/load_chatbot_info")
-def myChatbots(data:BaseChatBotModel,current_user: str = Depends(get_current_user)):
+def myChatbotInfo(data:BaseChatBotModel,current_user: str = Depends(get_current_user)):
     try:
         return {SUCCESS:True, RESULT: getChatBotInfo(current_user,data.botID)}
     except:

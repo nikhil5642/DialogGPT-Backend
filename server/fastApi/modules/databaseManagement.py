@@ -7,6 +7,8 @@ from typing import List, Dict
 import uuid
 from datetime import datetime
 
+from src.scripts.chatbotUtils import getChatBotLimitAsPerPlan
+
 def createUserIfNotExist(uid:str,email:str):
     if not getUsersCollection().find_one({USER_ID:uid}):
         getUsersCollection().insert_one({USER_ID:uid,EMAIL_ID:email,MESSAGE_USED:0,
@@ -19,9 +21,12 @@ def getUserInfo(uid):
 def createChatBot(uid:str,chatbotname):
     user = getUsersCollection().find_one({USER_ID: uid})
     if user is None:
-        HTTPException(status_code=404, detail="Something Went wrong")
+        raise HTTPException(status_code=501, detail="Something Went wrong")
     botID=str(uuid.uuid4())
     bot_id_list = user.get(CHATBOT_LIST, [])
+    max_allowed_bots= getChatBotLimitAsPerPlan(user.get(SUBSCRIPTION_PLAN, FREE_PLAN))
+    if(len(bot_id_list)>=max_allowed_bots):
+        raise HTTPException(status_code=501, detail="You have reached the maximum limit of chatbots for your plan")
     bot_id_list.append({CHATBOT_ID:botID,CHATBOT_NAME:chatbotname,CHATBOT_STATUS:'untrained',LAST_UPDATED:datetime.now(),CREATED_ON:datetime.now()})
     getUsersCollection().update_one({USER_ID: uid}, {"$set": {CHATBOT_LIST: bot_id_list}})
     getChatBotsCollection().insert_one({USER_ID:uid,CHATBOT_ID:botID,CHATBOT_NAME:chatbotname,CHATBOT_STATUS:'untrained',LAST_UPDATED:datetime.now(),CREATED_ON:datetime.now()})
@@ -53,12 +58,11 @@ def updateChatbotName(uid,botID,newName):
     getChatBotsCollection().update_one({USER_ID:uid,CHATBOT_ID:botID}, {"$set": {CHATBOT_NAME: newName}})
    
    
-
-def myChatBotsList(uid:str):
+def getUserChatBotInfo(uid:str):
     user = getUsersCollection().find_one({USER_ID: uid})
     if user is None:
         return []
-    return user.get(CHATBOT_LIST, [])
+    return user.get(CHATBOT_LIST, []),getChatBotLimitAsPerPlan(user.get(SUBSCRIPTION_PLAN, FREE_PLAN))
     
 def getContentMappingList(uid: str, botID: str):
     """

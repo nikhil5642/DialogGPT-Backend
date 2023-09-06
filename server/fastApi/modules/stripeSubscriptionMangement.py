@@ -2,6 +2,8 @@ import stripe
 from server.fastApi.modules.databaseManagement import get_subscription_id, handle_subscription_creation, handle_subscription_deletion, handle_subscription_update
 from src.DataBaseConstants import CUSTOMER, STATUS, SUBSCRIPTION, SUBSCRIPTION_ID,USER_ID,PLAN_ID,PRO_PLAN,ESSENTIALS_PLAN,ID
 import requests
+from src.scripts.chatbotUtils import getMessageLimitAsPerPlan
+
 stripe.api_key="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"
 
 SUBSCRIPTION_PRO= "price_1NmOk6SBubjVCHLvylBtaAiJ"
@@ -171,14 +173,6 @@ def handle_subscription_change(user_id,subscription_status,plan_id,subscription_
 
 def generateNewMetaData(user_id,plan_id):
     return {USER_ID: user_id,PLAN_ID:plan_id}
-
-def getMessageLimitAsPerPlan(plan):
-    if plan==PRO_PLAN:
-        return 10000
-    elif plan==ESSENTIALS_PLAN:
-        return 2000
-    else:
-        return 30
 
 
 def add_metadata_to_subscription(subscription_id, metadata):
