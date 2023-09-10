@@ -1,13 +1,14 @@
 from fastapi import HTTPException
-from DataBase.MongoDB import getContentStoreCollection, getUsersCollection,getChatBotsCollection
-from src.DataBaseConstants import COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, LAST_UPDATED, MESSAGE_LIMIT,MESSAGE_USED, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID
+from DataBase.MongoDB import getChatBotConfigCollection, getContentStoreCollection, getUsersCollection,getChatBotsCollection
+from src.BaseConstants import BASE_CHAT_BUBBLE_COLOR, BASE_CHAT_INITIAL_MESSAGE, BASE_CHATGPT_PROMPT, BASE_USER_MSG_COLOR
+from src.DataBaseConstants import BASE_PROMPT, COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, GPT_3_5_TURBO, INTERFACE, LAST_UPDATED, LIGHT, MESSAGE_LIMIT,MESSAGE_USED, MODEL, MODEL_VERSION, PROMPT, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, TEMPERATURE, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID,INITIAL_MESSAGE,QUICK_PROMPTS,THEME,PROFILE_PICTURE,USER_MSG_COLOR,DISPLAY_NAME,CHAT_ICON,CHAT_BUBBLE_COLOR
 from src.data_sources.utils import generateContentItem
 from src.logger.logger import GlobalLogger
 from typing import List, Dict
 import uuid
 from datetime import datetime
-
 from src.scripts.chatbotUtils import getChatBotLimitAsPerPlan
+
 
 def createUserIfNotExist(uid:str,email:str):
     if not getUsersCollection().find_one({USER_ID:uid}):
@@ -108,6 +109,48 @@ def storeContentList(list):
     
 def insertContentListInBotCollection(uid:str,botID:str,newContentList):
     getChatBotsCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {CONTENT_LIST: newContentList}})
+
+def getChatInterface(botID:str):
+    document = getChatBotConfigCollection().find_one({CHATBOT_ID: botID})
+    if document:
+        interface_data = document.get(INTERFACE, {})
+    else:
+        interface_data = {}
+        
+    if interface_data == {}:
+        return {INITIAL_MESSAGE:BASE_CHAT_INITIAL_MESSAGE,QUICK_PROMPTS:"",THEME:LIGHT,PROFILE_PICTURE:None,USER_MSG_COLOR:BASE_USER_MSG_COLOR,DISPLAY_NAME:"",CHAT_ICON:None,CHAT_BUBBLE_COLOR:BASE_CHAT_BUBBLE_COLOR}
+    else:
+        return {INITIAL_MESSAGE:interface_data[INITIAL_MESSAGE] or BASE_CHAT_INITIAL_MESSAGE,QUICK_PROMPTS:interface_data[QUICK_PROMPTS],THEME:interface_data[THEME],PROFILE_PICTURE:interface_data[PROFILE_PICTURE],USER_MSG_COLOR:interface_data[USER_MSG_COLOR],DISPLAY_NAME:interface_data[DISPLAY_NAME],CHAT_ICON:interface_data[CHAT_ICON],CHAT_BUBBLE_COLOR:interface_data[CHAT_BUBBLE_COLOR]}    
+        
+
+def updateChatInterface(uid:str,botID:str,initialMessage:str,quickPrompts:str,theme:str,profilePicture:str,userMsgColor:str,displayName:str,chatIcon:str,chatBubbleColor:str):
+    interface_data={ INITIAL_MESSAGE:initialMessage,QUICK_PROMPTS:quickPrompts,THEME:theme,PROFILE_PICTURE:profilePicture,USER_MSG_COLOR:userMsgColor,DISPLAY_NAME:displayName,CHAT_ICON:chatIcon,CHAT_BUBBLE_COLOR:chatBubbleColor}
+    
+    if not getChatBotConfigCollection().find_one({USER_ID:uid,CHATBOT_ID:botID}):
+         getChatBotConfigCollection().insert_one({USER_ID:uid,CHATBOT_ID:botID,INTERFACE:interface_data})
+    else:
+        getChatBotConfigCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {INTERFACE: interface_data}})
+
+def getChatModel(botID:str):
+    document = getChatBotConfigCollection().find_one({CHATBOT_ID: botID})
+    if document:
+        model_data = document.get(MODEL, {})
+    else:
+        model_data = {}
+    if model_data == {}:
+        return {PROMPT:BASE_CHATGPT_PROMPT,BASE_PROMPT:BASE_CHATGPT_PROMPT,MODEL_VERSION:GPT_3_5_TURBO,TEMPERATURE:0}    
+    else :
+        return {PROMPT:model_data[PROMPT] or BASE_CHATGPT_PROMPT,BASE_PROMPT:BASE_CHATGPT_PROMPT,MODEL_VERSION:model_data[MODEL_VERSION],TEMPERATURE:model_data[TEMPERATURE]}    
+
+
+def updateChatModel(uid:str,botID:str,prompt:str,modelVersion:str,temperature:float):
+    model_data={ PROMPT:prompt,MODEL_VERSION:modelVersion,TEMPERATURE:temperature}
+    
+    if not getChatBotConfigCollection().find_one({USER_ID:uid,CHATBOT_ID:botID}):
+         getChatBotConfigCollection().insert_one({USER_ID:uid,CHATBOT_ID:botID,MODEL:model_data})
+    else:
+        getChatBotConfigCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {MODEL: model_data}})
+
 
 def get_subscription_plan(user_id: str) -> str:
     user_document = getUsersCollection().find_one({USER_ID: user_id})
