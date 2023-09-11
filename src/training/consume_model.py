@@ -9,8 +9,10 @@ from src.DataBaseConstants import MODEL_VERSION, PROMPT, TEMPERATURE
 from src.training.train_model import OPENAI_API_KEY
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
+from langchain.llms import OpenAI
 from langchain.vectorstores import Chroma
-
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
 
 text_field = "text"
 condense_prompt= '''Given the following conversation and a follow up question'
@@ -19,7 +21,9 @@ condense_prompt= '''Given the following conversation and a follow up question'
         {chat_history}
         Follow Up Input: {question}'''
 
-qa_prompt = '''
+qa_prompt = ''' 
+
+Here is the info:
 
 {context}
 
@@ -39,10 +43,11 @@ def replyToQuery(botID,query,chat_history):
     llm = ChatOpenAI(model_name=model[MODEL_VERSION],temperature=model[TEMPERATURE],openai_api_key=OPENAI_API_KEY)
     chatbot = ConversationalRetrievalChain.from_llm(
                     llm=llm,
-                    retriever=db.as_retriever(), 
+                    retriever=db.as_retriever(search_type="similarity", search_kwargs={"k":2}), 
                     condense_question_prompt=CONDENSE_QUESTION_PROMPT,
                     memory=memory,
-                    combine_docs_chain_kwargs={'prompt':QA_PROMPT})
+                    combine_docs_chain_kwargs={'prompt':QA_PROMPT}
+                    ,max_tokens_limit=1000)
     result = chatbot({"question": query, "chat_history": chat_history})
     return result["answer"]
 

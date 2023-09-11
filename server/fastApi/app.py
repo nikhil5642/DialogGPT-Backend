@@ -205,14 +205,14 @@ def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_use
 
 @app.post("/reply")
 def reply(reply:ReplyModel):
-    try:
-        history=[]
-        for item in reply.history:
-            history.append((item[0],item[1]))
-        chat_reply=replyToQuery(reply.botID,reply.query,history)
-        return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
-    except:
-         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+    # try:
+    history=[]
+    for item in reply.history:
+        history.append((item[0],item[1]))
+    chat_reply=replyToQuery(reply.botID,reply.query,history)
+    return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
+    # except:
+    #      raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
     
 @app.post("/update_chatbot_name")
 def updateName(data:ChatBotNameChangeModel,current_user: str = Depends(get_current_user)):
