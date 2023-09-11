@@ -239,7 +239,7 @@ def updateChatbotModel(data:ChatBotModelModel,current_user: str = Depends(get_cu
 
 
 @app.post("/fetch_chatbot_interface")
-def fetchChatBotInterface(data: BaseChatBotModel, _: str = Depends(get_current_user)):
+def fetchChatBotInterface(data: BaseChatBotModel):
     try:
         return {SUCCESS:True,RESULT:getChatInterface(data.botID)}
     except:
