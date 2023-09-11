@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Optional
 from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.responses import RedirectResponse
 from DataBase.MongoDB import getChatBotsCollection
-from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getContent, getContentMappingList, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatbotName
+from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
 from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook
 from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_LIST, LAST_UPDATED, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED,CHATBOT_LIMIT
@@ -68,6 +68,22 @@ class ReplyModel(BaseChatBotModel):
     
 class SubscriptionModel(BaseModel):
     planId: str
+
+class ChatBotInterfaceModel(BaseChatBotModel):
+    initialMessage: str
+    quickPrompts: str
+    theme: str
+    profilePicture: Optional[str]
+    userMsgColor: str
+    displayName: str
+    chatIcon: Optional[str]
+    chatBubbleColor: str
+    
+class ChatBotModelModel(BaseChatBotModel):
+    prompt: str
+    modelVersion: str
+    temperature: float
+        
 
 @app.post("/authenticate")
 def authenticate(data:AuthenticationModel):
@@ -189,14 +205,14 @@ def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_use
 
 @app.post("/reply")
 def reply(reply:ReplyModel):
-    try:
-        history=[]
-        for item in reply.history:
-            history.append((item[0],item[1]))
-        chat_reply=replyToQuery(reply.botID,reply.query,history)
-        return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
-    except:
-         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+    # try:
+    history=[]
+    for item in reply.history:
+        history.append((item[0],item[1]))
+    chat_reply=replyToQuery(reply.botID,reply.query,history)
+    return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
+    # except:
+    #      raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
     
 @app.post("/update_chatbot_name")
 def updateName(data:ChatBotNameChangeModel,current_user: str = Depends(get_current_user)):
@@ -205,6 +221,38 @@ def updateName(data:ChatBotNameChangeModel,current_user: str = Depends(get_curre
         return {SUCCESS:True}
     except:
          raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+
+@app.post("/fetch_chatbot_model")
+def fetchChatbotModel(data: BaseChatBotModel, _: str = Depends(get_current_user)):
+    try:
+        return {SUCCESS:True,RESULT:getChatModel(data.botID)}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+
+@app.post("/update_chatbot_model")
+def updateChatbotModel(data:ChatBotModelModel,current_user: str = Depends(get_current_user)):
+    try:
+        updateChatModel(current_user,data.botID,data.prompt,data.modelVersion,data.temperature)
+        return {SUCCESS:True}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+
+
+@app.post("/fetch_chatbot_interface")
+def fetchChatBotInterface(data: BaseChatBotModel, _: str = Depends(get_current_user)):
+    try:
+        return {SUCCESS:True,RESULT:getChatInterface(data.botID)}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+
+@app.post("/update_chatbot_interface")
+def updateChatBotInterface(data:ChatBotInterfaceModel,current_user: str = Depends(get_current_user)):
+    try:
+        updateChatInterface(current_user,data.botID,data.initialMessage,data.quickPrompts,data.theme,data.profilePicture,data.userMsgColor,data.displayName,data.chatIcon,data.chatBubbleColor)
+        return {SUCCESS:True}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+
 
 @app.get("/current_subscription_plan")
 def subscriptionStatus(current_user: str = Depends(get_current_user)):
@@ -228,5 +276,4 @@ async def stripe_webhook(request: Request):
         return  manageWebhook(payload,sig_header)
     except:
         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
-    
     
