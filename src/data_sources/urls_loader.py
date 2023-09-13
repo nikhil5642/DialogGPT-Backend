@@ -31,7 +31,7 @@ def remove_query_parameters(url):
     return urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, "", "", ""))
 
 
-def fetch_url_content(url, base_url, base_netloc):
+def fetch_url_content(url, base_url):
     scraper = cloudscraper.create_scraper()
     new_urls = []
     try:
@@ -46,8 +46,7 @@ def fetch_url_content(url, base_url, base_netloc):
             for link in soup.find_all("a", href=True):
                 new_url = urljoin(base_url, link["href"])
                 cleaned_url = remove_query_parameters(new_url)  # Clean the URL before adding
-                parsed_url = urlparse(cleaned_url)
-                if parsed_url.netloc == base_netloc and not parsed_url.fragment:
+                if cleaned_url.startswith(base_url) and not urlparse(cleaned_url).fragment:
                     new_urls.append(cleaned_url)
             page_text = ' '.join(soup.stripped_strings)
             return page_text, new_urls
@@ -60,7 +59,6 @@ def get_all_urls_mapping(base_url, max_depth=5):
     visited_urls = set()
     urls_to_visit = [(base_url, 1)]
     url_text_mapping = {}
-    base_netloc = urlparse(base_url).netloc
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         while urls_to_visit and len(visited_urls) < 50:
@@ -69,7 +67,7 @@ def get_all_urls_mapping(base_url, max_depth=5):
             urls_to_visit = [item for item in urls_to_visit if item[0] not in current_urls]
 
             # Fetch content in parallel
-            results = executor.map(fetch_url_content, current_urls, [base_url]*len(current_urls), [base_netloc]*len(current_urls))
+            results = executor.map(fetch_url_content, current_urls, [base_url]*len(current_urls))
 
             for url, depth, result in zip(current_urls, current_depths, results):
                 if result is None:
@@ -82,8 +80,6 @@ def get_all_urls_mapping(base_url, max_depth=5):
                         if new_url not in visited_urls:
                             urls_to_visit.append((new_url, depth + 1))
     return url_text_mapping
-
-
 
 def url_mappings_to_storable_content(mapping):
     """
