@@ -55,9 +55,25 @@ def fetch_url_content(url, base_url):
         GlobalLogger().error(e)
         return None, []
 
+def resolve_redirects(url):
+    """
+    Resolve any redirects and return the final URL using cloudscraper.
+    """
+    scraper = cloudscraper.create_scraper()
+    try:
+        response = scraper.get(url, allow_redirects=True)
+        return response.url
+    except Exception as e:
+        GlobalLogger().error(f"Error resolving redirects for URL: {url}")
+        GlobalLogger().error(e)
+        return url
+
 def get_all_urls_mapping(base_url, max_depth=5):
+    # Resolve any redirects for the base URL to fetch the content
+    resolved_url = resolve_redirects(base_url)
+
     visited_urls = set()
-    urls_to_visit = [(base_url, 1)]
+    urls_to_visit = [(resolved_url, 1)]  # Start with the resolved URL to fetch content
     url_text_mapping = {}
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -67,7 +83,7 @@ def get_all_urls_mapping(base_url, max_depth=5):
             urls_to_visit = [item for item in urls_to_visit if item[0] not in current_urls]
 
             # Fetch content in parallel
-            results = executor.map(fetch_url_content, current_urls, [base_url]*len(current_urls))
+            results = executor.map(fetch_url_content, current_urls, [base_url]*len(current_urls))  # Use original base_url for joining
 
             for url, depth, result in zip(current_urls, current_depths, results):
                 if result is None:
@@ -80,6 +96,7 @@ def get_all_urls_mapping(base_url, max_depth=5):
                         if new_url not in visited_urls:
                             urls_to_visit.append((new_url, depth + 1))
     return url_text_mapping
+
 
 def url_mappings_to_storable_content(mapping):
     """
