@@ -1,5 +1,5 @@
 import os
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.docstore.document import Document
 from DataBase.MongoDB import getContentStoreCollection
@@ -33,7 +33,7 @@ def trainChatBot(botID,contentIDList):
     if os.path.exists(persist_directory):
         shutil.rmtree(persist_directory)
     docs=getDocumentsList(contentIDList)
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = text_splitter.split_documents(docs)
     embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
     db = Chroma.from_documents(chunks, embeddings,persist_directory=persist_directory)

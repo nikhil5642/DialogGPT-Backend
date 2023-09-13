@@ -22,11 +22,12 @@ condense_prompt= '''Given the following conversation and a follow up question'
         Follow Up Input: {question}'''
 
 qa_prompt = ''' 
-
-Here is the info:
+------------------------
+Context: 
 
 {context}
 
+------------------------
 Question: {question}
 Helpful answer in markdown:'''
 
@@ -34,21 +35,27 @@ Helpful answer in markdown:'''
 # pinecone.init(api_key=PINECONE_API_KEY,environment=PINECONE_ENV)   
 
 def replyToQuery(botID,query,chat_history):   
+    memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
+    for chat in chat_history:
+        if chat.type=="incoming":
+            memory.chat_memory.add_ai_message(chat.text)
+        else:
+            memory.chat_memory.add_user_message(chat.text)
+            
     model=getChatModel(botID)
     temp_qa_prompt= model[PROMPT]+qa_prompt
     QA_PROMPT = PromptTemplate(template=temp_qa_prompt, input_variables=["context", "question"])
     CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(condense_prompt)
     db = Chroma(persist_directory=os.path.abspath("./Database/chatbot_embeddings/"+botID),embedding_function=OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY))
-    memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
+    
     llm = ChatOpenAI(model_name=model[MODEL_VERSION],temperature=model[TEMPERATURE],openai_api_key=OPENAI_API_KEY)
     chatbot = ConversationalRetrievalChain.from_llm(
                     llm=llm,
-                    retriever=db.as_retriever(search_type="similarity", search_kwargs={"k":2}), 
+                    retriever=db.as_retriever(search_type="similarity", search_kwargs={"k":3}), 
                     condense_question_prompt=CONDENSE_QUESTION_PROMPT,
                     memory=memory,
-                    combine_docs_chain_kwargs={'prompt':QA_PROMPT}
-                    ,max_tokens_limit=1000)
-    result = chatbot({"question": query, "chat_history": chat_history})
+                    combine_docs_chain_kwargs={'prompt':QA_PROMPT})
+    result = chatbot({"question": query})
     return result["answer"]
 
 

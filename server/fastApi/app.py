@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.responses import RedirectResponse
 from DataBase.MongoDB import getChatBotsCollection
@@ -62,9 +62,14 @@ class URLListModel(BaseChatBotModel):
 class TrainingModel(BaseChatBotModel):
     data:List[dict]
 
+class ChatMessageModel(BaseModel):
+    id: int
+    text: str
+    type: Literal["incoming", "outgoing"]
+
 class ReplyModel(BaseChatBotModel):
     query:str
-    history:List[List]
+    history:List[ChatMessageModel]
     
 class SubscriptionModel(BaseModel):
     planId: str
@@ -206,10 +211,7 @@ def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_use
 @app.post("/reply")
 def reply(reply:ReplyModel):
     # try:
-    history=[]
-    for item in reply.history:
-        history.append((item[0],item[1]))
-    chat_reply=replyToQuery(reply.botID,reply.query,history)
+    chat_reply=replyToQuery(reply.botID,reply.query,reply.history[-5:])
     return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
     # except:
     #      raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
