@@ -52,9 +52,8 @@ def fetch_url_content(url, base_url, base_netloc):
             page_text = ' '.join(soup.stripped_strings)
             return page_text, new_urls
     except Exception as e:
-        # Handle exceptions as needed
-        print(f"Error fetching URL: {url}")
-        print(e)
+        GlobalLogger().error(f"Error fetching URL: {url}")
+        GlobalLogger().error(e)
         return None, []
 
 def get_all_urls_mapping(base_url, max_depth=5):
