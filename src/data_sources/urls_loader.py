@@ -51,7 +51,7 @@ def get_all_urls_mapping(base_url, max_depth=5):
                 for link in soup.find_all("a", href=True):
                     new_url = urljoin(base_url, link["href"])
                     parsed_url = urlparse(new_url)
-                    if parsed_url.netloc == base_netloc and not parsed_url.fragment and isValidUrl(new_url):
+                    if parsed_url.netloc == base_netloc and not parsed_url.fragment :
                         urls_to_visit.append((new_url, depth + 1))
 
                 # Store the text content associated with the current URL
