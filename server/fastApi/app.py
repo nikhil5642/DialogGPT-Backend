@@ -1,5 +1,5 @@
 from typing import List, Literal, Optional
-from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
+from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request, Response
 from fastapi.responses import RedirectResponse
 from DataBase.MongoDB import getChatBotsCollection
 from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName
@@ -241,7 +241,12 @@ def updateChatbotModel(data:ChatBotModelModel,current_user: str = Depends(get_cu
 
 
 @app.post("/fetch_chatbot_interface")
-def fetchChatBotInterface(data: BaseChatBotModel):
+def fetchChatBotInterface(data: BaseChatBotModel,request: Request, response: Response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "POST"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    
     try:
         return {SUCCESS:True,RESULT:getChatInterface(data.botID)}
     except:
