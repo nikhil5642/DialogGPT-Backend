@@ -76,7 +76,6 @@ def get_all_urls_mapping(base_url, max_depth=5):
                     continue
                 page_text, new_urls = result
                 if page_text:
-                    print(url)
                     visited_urls.add(url)
                     url_text_mapping[url] = page_text
                     for new_url in new_urls:
