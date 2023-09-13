@@ -63,7 +63,7 @@ def get_all_urls_mapping(base_url, max_depth=5):
     base_netloc = urlparse(base_url).netloc
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        while urls_to_visit and len(visited_urls) < 100:
+        while urls_to_visit and len(visited_urls) < 50:
             current_urls = [url for url, depth in urls_to_visit if depth <= max_depth]
             current_depths = [depth for url, depth in urls_to_visit if depth <= max_depth]
             urls_to_visit = [item for item in urls_to_visit if item[0] not in current_urls]
