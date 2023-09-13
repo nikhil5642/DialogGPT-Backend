@@ -137,12 +137,12 @@ def myChatbotsContent(data:BaseChatBotModel,current_user: str = Depends(get_curr
         
         
 @privateApp.post("/fetch_urls")
-def fetchURLs(data:URLModel,current_user: str = Depends(get_current_user)):
+async def fetchURLs(data:URLModel,current_user: str = Depends(get_current_user)):
     if not isValidUrl(data.url):
         raise HTTPException(status_code=501, detail="Invalid URL")
     
     try:
-        mapping=get_all_urls_mapping(data.url,max_depth=5)
+        mapping= get_all_urls_mapping(data.url,max_depth=5)
         contentMappingList=get_filtered_content_mapping(current_user,data.botID,mapping)
         return {SUCCESS:True, RESULT:contentMappingList }
     except:
