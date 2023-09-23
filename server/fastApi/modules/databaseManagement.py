@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from DataBase.MongoDB import getChatBotConfigCollection, getContentStoreCollection, getUsersCollection,getChatBotsCollection
 from src.BaseConstants import BASE_CHAT_BUBBLE_COLOR, BASE_CHAT_INITIAL_MESSAGE, BASE_CHATGPT_PROMPT, BASE_USER_MSG_COLOR
-from src.DataBaseConstants import BASE_PROMPT, COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, GPT_3_5_TURBO, INTERFACE, LAST_UPDATED, LIGHT, MESSAGE_LIMIT,MESSAGE_USED, MODEL, MODEL_VERSION, PROMPT, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, TEMPERATURE, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID,INITIAL_MESSAGE,QUICK_PROMPTS,THEME,PROFILE_PICTURE,USER_MSG_COLOR,DISPLAY_NAME,CHAT_ICON,CHAT_BUBBLE_COLOR
+from src.DataBaseConstants import BASE_PROMPT, COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, GPT_3_5_TURBO, INTERFACE, LAST_UPDATED, LIGHT, MESSAGE_CREDITS, MESSAGE_LIMIT,MESSAGE_USED, MODEL, MODEL_VERSION, PROMPT, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, TEMPERATURE, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID,INITIAL_MESSAGE,QUICK_PROMPTS,THEME,PROFILE_PICTURE,USER_MSG_COLOR,DISPLAY_NAME,CHAT_ICON,CHAT_BUBBLE_COLOR
 from src.data_sources.utils import generateContentItem
 from src.logger.logger import GlobalLogger
 from typing import List, Dict
@@ -19,6 +19,18 @@ def createUserIfNotExist(uid:str,email:str):
 def getUserInfo(uid):
     return getUsersCollection().find_one({USER_ID:uid},{"_id": 0, CHATBOT_LIST:0}) or {}
 
+def getRemainingMessageCredits(uid):
+    userDoc= getUserInfo(uid)
+    return getMessageCredits(userDoc)
+def getMessageCredits(userDoc):
+    if userDoc!={}:
+        return {SUBSCRIPTION_PLAN:userDoc.get(SUBSCRIPTION_PLAN,FREE_PLAN),MESSAGE_CREDITS:max(0,userDoc.get(MESSAGE_LIMIT,0)-userDoc.get(MESSAGE_USED,0))}
+    else:
+        return {SUBSCRIPTION_PLAN:FREE_PLAN,MESSAGE_CREDITS:0}
+
+def updateMessageUsed(uid:str,msgUsed:int): 
+    getUsersCollection().update_one({USER_ID: uid}, {"$set": {MESSAGE_USED: msgUsed}})
+    
 def createChatBot(uid:str,chatbotname):
     user = getUsersCollection().find_one({USER_ID: uid})
     if user is None:

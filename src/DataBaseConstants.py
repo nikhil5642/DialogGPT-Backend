@@ -45,6 +45,7 @@ SUBSCRIPTION_ID="subscription_id"
 
 MESSAGE_USED="message_used"
 MESSAGE_LIMIT="message_limit"
+MESSAGE_CREDITS="message_credits"
 
 COMPLETE="complete"
 CUSTOMER="customer"

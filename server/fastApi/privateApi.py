@@ -1,10 +1,10 @@
 from typing import List, Literal, Optional
 from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
 from DataBase.MongoDB import getChatBotsCollection
-from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName
+from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
 from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook
-from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_LIST, LAST_UPDATED, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED,CHATBOT_LIMIT
+from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_LIST, LAST_UPDATED, MESSAGE_CREDITS, MESSAGE_USED, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED,CHATBOT_LIMIT
 from starlette.staticfiles import StaticFiles
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -99,8 +99,12 @@ def authenticate(data:AuthenticationModel):
         raise HTTPException(status_code=422, detail="Unprocessable Data!")            
 
 @privateApi.get("/account_info")
-def authenticate(current_user: str = Depends(get_current_user)):
+def accountInfo(current_user: str = Depends(get_current_user)):
     return {SUCCESS:True,RESULT:getUserInfo(current_user)}
+
+@privateApi.get("/message_credits")
+def messageCredits(current_user: str = Depends(get_current_user)):
+    return {SUCCESS:True,RESULT:getRemainingMessageCredits(current_user)}
 
 @privateApi.post("/create_bot")
 def createBot(data:ChatBotCreationModel,current_user: str = Depends(get_current_user)):
@@ -206,11 +210,18 @@ def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_use
 
 @privateApi.post("/reply")
 def reply(reply:ReplyModel):
-    # try:
-    chat_reply=replyToQuery(reply.botID,reply.query,reply.history[-5:])
-    return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
-    # except:
-    #      raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+    try:
+        uid= getChatBotsCollection().find_one({CHATBOT_ID:reply.botID}).get(USER_ID)
+        userDoc= getUserInfo(uid)
+        msgCredits=getMessageCredits(userDoc)[MESSAGE_CREDITS]
+        if(msgCredits>0):
+            chat_reply=replyToQuery(reply.botID,reply.query,reply.history[-5:])
+            updateMessageUsed(uid,userDoc.get(MESSAGE_USED,0)+1)
+        else:
+            chat_reply="Credit Limit Exceeded"
+        return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
     
 @privateApi.post("/update_chatbot_name")
 def updateName(data:ChatBotNameChangeModel,current_user: str = Depends(get_current_user)):
