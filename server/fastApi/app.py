@@ -1,15 +1,14 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from server.fastApi.publicApp import publicApp
-from fastapi.middleware.cors import CORSMiddleware
-from server.fastApi.privateApp import privateApp
+from server.fastApi.publicApi import publicApi
+from server.fastApi.privateApi import privateApi
 
 
 app = FastAPI()
 
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
-app.mount("/api", privateApp)
-app.mount("/public", publicApp)
+app.mount("/api", privateApi)
+app.mount("/public", publicApi)
 
 
 
