@@ -47,6 +47,7 @@ def createChatBot(uid:str,chatbotname):
     return botID
 
 def updateChatBotStatus(uid,botID,status):
+    getChatBotsCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {CHATBOT_STATUS: status}})
     user = getUsersCollection().find_one({USER_ID: uid})
     if user is None:
         HTTPException(status_code=404, detail="Something Went wrong")
@@ -113,7 +114,6 @@ def updateContent(uid:str,botID:str,contentID:str,content:str):
 
 def getContent(contentID:str):
     return getContentStoreCollection().find_one({CONTENT_ID:contentID})[CONTENT]
-  
     
 def storeContentList(list):
     if(list!=[]):

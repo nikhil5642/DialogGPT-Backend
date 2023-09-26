@@ -37,6 +37,8 @@ class BrowserPool:
         # Speed up loading by disabling images and unnecessary features
         options.add_argument("--blink-settings=imagesEnabled=false")
         options.add_argument("--disable-extensions")
+        options.add_argument("--disable-plugins")
+        options.add_argument("--disable-animations")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems.
@@ -50,6 +52,7 @@ class BrowserPool:
             raise Exception("Unsupported OS.")
         
         browser = webdriver.Chrome(options=options)
+        browser.set_page_load_timeout(10)  # 10 seconds
         return browser
 
     def get(self):

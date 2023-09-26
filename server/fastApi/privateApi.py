@@ -4,13 +4,13 @@ from DataBase.MongoDB import getChatBotsCollection
 from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
 from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook
-from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_LIST, LAST_UPDATED, MESSAGE_CREDITS, MESSAGE_USED, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED,CHATBOT_LIMIT
+from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_ID, CONTENT_LIST, LAST_UPDATED, MESSAGE_CREDITS, MESSAGE_USED, REMOVING, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED,CHATBOT_LIMIT
 from starlette.staticfiles import StaticFiles
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from src.data_sources.text_loader import saveText
 from datetime import datetime
-from src.data_sources.urls_loader import get_all_urls_mapping, get_filtered_content_mapping, get_url_list_mapping, isValidUrl
+from src.data_sources.urls_loader import get_all_urls_mapping, get_filtered_content_mapping, get_url_list_mapping, isValidUrl, update_final_mappings
 from src.scripts.scrapper import BrowserPool,LazyBrowserPool
 from src.training.consume_model import replyToQuery
 from src.training.train_model import trainChatBot
@@ -196,31 +196,30 @@ def fetchURLs(data:ContentModel):
 @privateApi.post("/train_chatbot")
 def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_user: str = Depends(get_current_user)):
     newlyAddedUrl = []
+    print(data.data)
     if(len(data.data))<1:
         return {SUCCESS:False,RESULT:"Can't train on empty"}
-    
     for item in reversed(data.data):
-        if item[SOURCE_TYPE] == URL and item[STATUS] == NEWLY_ADDED:
-            newlyAddedUrl.append(item(SOURCE))
-            data.data.remove(item)    
-            
-    filtered_mapping = get_filtered_content_mapping(current_user, data.botID, get_url_list_mapping(newlyAddedUrl))    
+        if item[SOURCE_TYPE] == URL:
+            if item[STATUS] == NEWLY_ADDED:
+                newlyAddedUrl.append(item[SOURCE])
+                data.data.remove(item)    
+            elif item[STATUS] == REMOVING:
+                data.data.remove(item)    
+                
+    filtered_mapping = get_filtered_content_mapping(current_user, data.botID, get_url_list_mapping(newlyAddedUrl,browser_pool=get_browser_pool()))    
     final_mapping= data.data + filtered_mapping
-    
-    getChatBotsCollection().update_one({USER_ID: current_user, CHATBOT_ID: data.botID}, {"$set": {CONTENT_LIST: final_mapping,CHATBOT_STATUS: TRAINING,LAST_UPDATED:datetime.now()}})
+    update_final_mappings(current_user,data.botID,final_mapping)
     updateChatBotStatus(current_user,data.botID,TRAINING)
     def train_async():
         try:
             trainChatBot(data.botID,final_mapping)
             for item in final_mapping:
                 item[STATUS] = TRAINED
-            getChatBotsCollection().update_one({USER_ID: current_user, CHATBOT_ID: data.botID}, {"$set": {CONTENT_LIST: final_mapping,CHATBOT_STATUS: TRAINED,LAST_UPDATED:datetime.now()}})
             updateChatBotStatus(current_user,data.botID,TRAINED)
         except:
-            getChatBotsCollection().update_one({USER_ID: current_user, CHATBOT_ID: data.botID}, {"$set": {CHATBOT_STATUS: UNTRAINED,LAST_UPDATED:datetime.now()}})
             updateChatBotStatus(current_user,data.botID,UNTRAINED)
             
-        
     background_tasks.add_task(train_async)
     return {SUCCESS:True,RESULT:"Chatbot is training, Please Wait"}
 

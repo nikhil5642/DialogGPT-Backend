@@ -23,6 +23,7 @@ TRAINING="training"
 UNTRAINED="untrained"
 
 NEWLY_ADDED="newlyAdded"
+REMOVING="removing"
 
 URL='url'
 TEXT="text"

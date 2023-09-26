@@ -1,9 +1,10 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin,urlunparse
 from langchain.docstore.document import Document
+from DataBase.MongoDB import getChatBotsCollection
 from server.fastApi.modules.databaseManagement import getContentMappingList, insertContentListInBotCollection, storeContentList
-from src.DataBaseConstants import SOURCE,SOURCE_TYPE, URL
-from src.data_sources.utils import generateContentItem, generateContentMappingItem
+from src.DataBaseConstants import CHATBOT_ID, CONTENT_ID, CONTENT_LIST, SOURCE,SOURCE_TYPE, URL, USER_ID
+from src.data_sources.utils import deleteContentID, generateContentItem, generateContentMappingItem
 import uuid
 import re
 import cloudscraper
@@ -12,15 +13,21 @@ import concurrent.futures
 from threading import Lock
 from src.scripts.scrapper import MAX_THREADS
 
-def get_url_list_mapping(urls):
+def get_url_list_mapping(urls,browser_pool):
     mappings={}
-    scraper = cloudscraper.create_scraper() 
-    for url in urls:
-        response = scraper.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, "lxml")
-            # Store the text content associated with the current URL
-            mappings[url]=' '.join(soup.stripped_strings)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        # Fetch content in parallel
+        results = executor.map(load_page_source, urls, [browser_pool]*len(urls)) # Use original base_url for joining
+        for url, result in zip(urls, results):
+            if result is None:
+                continue
+            page_source= result
+            soup = BeautifulSoup(page_source, "lxml")
+            page_text = ' '.join(soup.stripped_strings)
+            
+            if page_text:
+                mappings[url] = page_text
+                    
     return mappings
 
 def isValidUrl(url):
@@ -47,12 +54,8 @@ def resolve_redirects(url):
     
 def fetch_url_content(url, base_url, browser_pool):
     new_urls = []
-    browser = browser_pool.get()
-
     try:
-        browser.get(url)
-        page_source = browser.page_source
-        browser_pool.release(browser)
+        page_source = load_page_source(url, browser_pool)
         if not page_source:
             return None, []
         
@@ -70,7 +73,12 @@ def fetch_url_content(url, base_url, browser_pool):
         GlobalLogger().error(e)
         return None, []
 
-
+def load_page_source(url, browser_pool):
+    browser = browser_pool.get()
+    browser.get(url)
+    page_source = browser.page_source
+    browser_pool.release(browser)
+    return page_source
 
 
 def get_all_urls_mapping(base_url,browser_pool, max_depth=5):
@@ -158,3 +166,12 @@ def get_final_content_mapping(uid:str,botID:str,mapping):
     insertContentListInBotCollection(uid,botID,current_collections)
     return current_collections
                 
+def update_final_mappings(uid:str,botID:str,mapping):
+    removedContentId=[]
+    for item in getContentMappingList(uid,botID):
+        if item[SOURCE_TYPE]==URL and not any(map_item[CONTENT_ID] == item[CONTENT_ID] for map_item in mapping):
+            removedContentId.append(item[CONTENT_ID])
+    deleteContentID(removedContentId)   
+    getChatBotsCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {CONTENT_LIST: mapping}})
+     
+     
