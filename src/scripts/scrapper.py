@@ -45,7 +45,7 @@ class BrowserPool:
       
         os_name = platform.system()
         if os_name == "Linux":
-            options.binary_location = "/usr/bin/chromium-browser"
+            options.binary_location = "/usr/bin/chromium"
         elif os_name == "Darwin":
             options.binary_location = "/Applications/Chromium.app/Contents/MacOS/Chromium"
         else:
