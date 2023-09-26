@@ -4,12 +4,10 @@ from DataBase.MongoDB import getChatBotsCollection
 from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed,deleteChatbot
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
 from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook
-from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_ID, CONTENT_LIST, LAST_UPDATED, MESSAGE_CREDITS, MESSAGE_USED, REMOVING, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED,CHATBOT_LIMIT
-from starlette.staticfiles import StaticFiles
+from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_ID, MESSAGE_CREDITS, MESSAGE_USED, REMOVING, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,UNTRAINED,CHATBOT_LIMIT
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from src.data_sources.text_loader import saveText
-from datetime import datetime
 from src.data_sources.urls_loader import get_all_urls_mapping, get_filtered_content_mapping, get_url_list_mapping, isValidUrl, update_final_mappings
 from src.scripts.scrapper import BrowserPool,LazyBrowserPool
 from src.training.consume_model import replyToQuery
@@ -161,7 +159,7 @@ async def fetchURLs(data:URLModel,current_user: str = Depends(get_current_user),
         raise HTTPException(status_code=501, detail="Invalid URL")
     
     try:
-        mapping= get_all_urls_mapping(data.url,browser_pool,max_depth=5)
+        mapping= await get_all_urls_mapping(data.url,browser_pool,max_depth=5)
         contentMappingList=get_filtered_content_mapping(current_user,data.botID,mapping)
         return {SUCCESS:True, RESULT:contentMappingList }
     except:
@@ -169,9 +167,9 @@ async def fetchURLs(data:URLModel,current_user: str = Depends(get_current_user),
     
     
 @privateApi.post("/add_url")
-def fetchURLs(data:URLListModel,current_user: str = Depends(get_current_user)):
+async def fetchURLs(data:URLListModel,current_user: str = Depends(get_current_user)):
     try:
-        mapping=get_url_list_mapping(data.urls)
+        mapping=await get_url_list_mapping(data.urls)
         return {SUCCESS:True, RESULT:get_filtered_content_mapping(current_user,data.botID,mapping)}
     except:
         raise HTTPException(status_code=404, detail="Something Went wrong")
@@ -194,7 +192,7 @@ def fetchURLs(data:ContentModel):
         raise HTTPException(status_code=404, detail="Something Went wrong")
     
 @privateApi.post("/train_chatbot")
-def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_user: str = Depends(get_current_user)):
+async def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_user: str = Depends(get_current_user)):
     newlyAddedUrl = []
     if(len(data.data))<1:
         return {SUCCESS:False,RESULT:"Can't train on empty"}
@@ -205,8 +203,8 @@ def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_use
                 data.data.remove(item)    
             elif item[STATUS] == REMOVING:
                 data.data.remove(item)    
-                
-    filtered_mapping = get_filtered_content_mapping(current_user, data.botID, get_url_list_mapping(newlyAddedUrl,browser_pool=get_browser_pool()))    
+    new_url_mapping=await get_url_list_mapping(newlyAddedUrl,browser_pool=get_browser_pool())
+    filtered_mapping = get_filtered_content_mapping(current_user, data.botID, new_url_mapping)   
     final_mapping= data.data + filtered_mapping
     update_final_mappings(current_user,data.botID,final_mapping)
     updateChatBotStatus(current_user,data.botID,TRAINING)

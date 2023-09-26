@@ -7,17 +7,22 @@ from src.DataBaseConstants import CHATBOT_ID, CONTENT_ID, CONTENT_LIST, SOURCE,S
 from src.data_sources.utils import generateContentItem, generateContentMappingItem
 import uuid
 import re
+import asyncio
 import cloudscraper
 from src.logger.logger import GlobalLogger
 import concurrent.futures
 from threading import Lock
 from src.scripts.scrapper import MAX_THREADS
 
-def get_url_list_mapping(urls,browser_pool):
+async def get_url_list_mapping(urls,browser_pool):
     mappings={}
+    loop = asyncio.get_event_loop()
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         # Fetch content in parallel
-        results = executor.map(load_page_source, urls, [browser_pool]*len(urls)) # Use original base_url for joining
+        results = await loop.run_in_executor(
+                executor,
+                lambda: list(load_page_source, urls, [browser_pool]*len(urls))
+            )
         for url, result in zip(urls, results):
             if result is None:
                 continue
@@ -81,29 +86,29 @@ def load_page_source(url, browser_pool):
     return page_source
 
 
-def get_all_urls_mapping(base_url,browser_pool, max_depth=5):
+async def get_all_urls_mapping(base_url,browser_pool, max_depth=5):
     # Resolve any redirects for the base URL to fetch the content
     resolved_url = resolve_redirects(base_url)
-     # Initialize a Lock for synchronized access to urls_to_visit
-    url_lock = Lock()
-
+    
     visited_urls = set()
     urls_to_visit = [(resolved_url, 1)]  # Start with the resolved URL to fetch content
     url_text_mapping = {}
-   
+    
+    loop = asyncio.get_event_loop()
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         while urls_to_visit and len(visited_urls) < 50:
-            with url_lock: 
-                current_urls = [url for url, depth in urls_to_visit if depth <= max_depth]
-                current_depths = [depth for url, depth in urls_to_visit if depth <= max_depth]
-                # Mark current_urls as visited immediately
-                visited_urls.update(current_urls)
+            current_urls = [url for url, depth in urls_to_visit if depth <= max_depth]
+            current_depths = [depth for url, depth in urls_to_visit if depth <= max_depth]
+            # Mark current_urls as visited immediately
+            visited_urls.update(current_urls)
 
-                urls_to_visit = [item for item in urls_to_visit if item[0] not in current_urls]
+            urls_to_visit = [item for item in urls_to_visit if item[0] not in current_urls]
 
             # Fetch content in parallel
-            results = executor.map(fetch_url_content, current_urls, [base_url]*len(current_urls),[browser_pool]*len(current_urls)) # Use original base_url for joining
-
+            results = await loop.run_in_executor(
+                executor,
+                lambda: list(map(fetch_url_content, current_urls, [base_url]*len(current_urls), [browser_pool]*len(current_urls)))
+            )
             for url, depth, result in zip(current_urls, current_depths, results):
                 if result is None:
                     continue
