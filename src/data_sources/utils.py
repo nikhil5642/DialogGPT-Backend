@@ -1,3 +1,5 @@
+
+from DataBase.MongoDB import getContentStoreCollection
 from src.DataBaseConstants import CONTENT_ID, CONTENT,SOURCE,SOURCE_TYPE,LAST_UPDATED,CHAR_COUNT,STATUS,UNTRAINED
 from datetime import datetime
 
@@ -6,3 +8,4 @@ def generateContentMappingItem(contentID,source,source_type,value):
 
 def generateContentItem(contentID,value):
     return {CONTENT_ID:contentID, CONTENT:value,LAST_UPDATED:datetime.now()}
+
