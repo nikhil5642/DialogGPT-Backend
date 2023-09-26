@@ -196,7 +196,6 @@ def fetchURLs(data:ContentModel):
 @privateApi.post("/train_chatbot")
 def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_user: str = Depends(get_current_user)):
     newlyAddedUrl = []
-    print(data.data)
     if(len(data.data))<1:
         return {SUCCESS:False,RESULT:"Can't train on empty"}
     for item in reversed(data.data):
