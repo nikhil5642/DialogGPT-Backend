@@ -2,9 +2,9 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin,urlunparse
 from langchain.docstore.document import Document
 from DataBase.MongoDB import getChatBotsCollection
-from server.fastApi.modules.databaseManagement import getContentMappingList, insertContentListInBotCollection, storeContentList
+from server.fastApi.modules.databaseManagement import getContentMappingList, insertContentListInBotCollection, storeContentList,deleteContentID
 from src.DataBaseConstants import CHATBOT_ID, CONTENT_ID, CONTENT_LIST, SOURCE,SOURCE_TYPE, URL, USER_ID
-from src.data_sources.utils import deleteContentID, generateContentItem, generateContentMappingItem
+from src.data_sources.utils import generateContentItem, generateContentMappingItem
 import uuid
 import re
 import cloudscraper

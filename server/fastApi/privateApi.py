@@ -1,7 +1,7 @@
 from typing import List, Literal, Optional
 from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
 from DataBase.MongoDB import getChatBotsCollection
-from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed
+from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed,deleteChatbot
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
 from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook
 from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_ID, CONTENT_LIST, LAST_UPDATED, MESSAGE_CREDITS, MESSAGE_USED, REMOVING, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,ERROR,UNTRAINED,CHATBOT_LIMIT
@@ -277,6 +277,13 @@ def updateChatBotInterface(data:ChatBotInterfaceModel,current_user: str = Depend
     except:
          raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
 
+@privateApi.post("/delete_chatbot")
+def deleteChatbotApi(data: BaseChatBotModel, current_user: str = Depends(get_current_user)):
+    try:
+        deleteChatbot(current_user,data.botID)
+        return {SUCCESS:True}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
 
 @privateApi.get("/current_subscription_plan")
 def subscriptionStatus(current_user: str = Depends(get_current_user)):

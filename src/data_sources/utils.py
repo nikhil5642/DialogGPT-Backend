@@ -9,5 +9,3 @@ def generateContentMappingItem(contentID,source,source_type,value):
 def generateContentItem(contentID,value):
     return {CONTENT_ID:contentID, CONTENT:value,LAST_UPDATED:datetime.now()}
 
-def deleteContentID(contentIdList):
-    getContentStoreCollection().delete_many({CONTENT_ID: {'$in': contentIdList}})

@@ -163,6 +163,21 @@ def updateChatModel(uid:str,botID:str,prompt:str,modelVersion:str,temperature:fl
     else:
         getChatBotConfigCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {MODEL: model_data}})
 
+def deleteChatbot(uid,botID):
+    user = getUsersCollection().find_one({USER_ID: uid})
+    if user is None:
+        HTTPException(status_code=404, detail="Something Went wrong")
+    bot_id_list = user.get(CHATBOT_LIST, [])
+    for bot in bot_id_list:
+        if(bot[CHATBOT_ID]==botID):
+            bot_id_list.remove(bot)
+    getUsersCollection().update_one({USER_ID: uid}, {"$set": {CHATBOT_LIST: bot_id_list}})
+    contentIDList=[item[CONTENT_ID] for item in getContentMappingList(uid,botID)]
+    deleteContentID(contentIDList)
+    getChatBotsCollection().delete_one({USER_ID:uid,CHATBOT_ID:botID})
+   
+def deleteContentID(contentIdList):
+    getContentStoreCollection().delete_many({CONTENT_ID: {'$in': contentIdList}})
 
 def get_subscription_plan(user_id: str) -> str:
     user_document = getUsersCollection().find_one({USER_ID: user_id})
