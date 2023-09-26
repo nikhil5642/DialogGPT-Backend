@@ -4,6 +4,9 @@ import platform
 from queue import Queue
 from fake_useragent import UserAgent
 
+MAX_BROWSERS = 5
+MAX_THREADS = 10  # Adjust based on system's capability
+
 class LazyBrowserPool:
     _instance = None
 
@@ -14,7 +17,7 @@ class LazyBrowserPool:
         return cls._instance
 
 class BrowserPool:
-    def __init__(self, size):
+    def __init__(self, size=MAX_BROWSERS):
         self.browsers = Queue()
         self.size = size
         self._initialize()
@@ -51,22 +54,31 @@ class BrowserPool:
         else:
             raise Exception("Unsupported OS.")
         
-        browser = webdriver.Chrome(options=options)
-        browser.set_page_load_timeout(10)  # 10 seconds
-        return browser
+        try:
+            browser = webdriver.Chrome(options=options)
+            browser.set_page_load_timeout(10)  # 10 seconds
+            return browser
+        except Exception as e:
+            # Log or print the exception for debugging
+            print(f"Error creating browser: {e}")
+            # Consider retrying or returning None, then handle this in the calling method
 
     def get(self):
         return self.browsers.get()
 
     def release(self, browser):
+        try:
+            # Reset browser state; clear cookies, history, etc.
+            browser.delete_all_cookies()
+            browser.refresh()
+        except:
+            pass  # If refresh fails, still continue to put it back in the queue.
         self.browsers.put(browser)
 
     def shutdown(self):
         while not self.browsers.empty():
-            browser = self.browsers.get()
-            browser.quit()
-
-# ... Rest of the functions ...
-
-MAX_BROWSERS = 5
-MAX_THREADS = 10  # Adjust based on system's capability
+            try:
+                browser = self.browsers.get()
+                browser.quit()
+            except:
+                pass  # If quit fails, move to the next browser.

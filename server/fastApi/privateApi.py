@@ -12,12 +12,8 @@ from src.data_sources.urls_loader import get_all_urls_mapping, get_filtered_cont
 from src.scripts.scrapper import BrowserPool,LazyBrowserPool
 from src.training.consume_model import replyToQuery
 from src.training.train_model import trainChatBot
-import atexit
 
 privateApi = FastAPI()
-
-def get_browser_pool():
-    return LazyBrowserPool.get_instance()
 
 origins = ["http://localhost:3000",
            "https://www.dialoggpt.io",
@@ -35,18 +31,7 @@ privateApi.add_middleware(
 async def root():
     return {"message": "Hello Bigger Applications!"}
 
-def cleanup():
-    get_browser_pool().shutdown()
 
-@privateApi.on_event("startup")
-async def startup_event():
-    get_browser_pool()
-    
-@privateApi.on_event("shutdown")
-async def shutdown_event():
-    cleanup()
-    
-atexit.register(cleanup)
 class AuthenticationModel(BaseModel):
     token:str
 
@@ -154,16 +139,16 @@ def myChatbotsContent(data:BaseChatBotModel,current_user: str = Depends(get_curr
         
         
 @privateApi.post("/fetch_urls")
-async def fetchURLs(data:URLModel,current_user: str = Depends(get_current_user), browser_pool: BrowserPool = Depends(get_browser_pool)):
+async def fetchURLs(data:URLModel,current_user: str = Depends(get_current_user)):
     if not isValidUrl(data.url):
         raise HTTPException(status_code=501, detail="Invalid URL")
     
-    try:
-        mapping= await get_all_urls_mapping(data.url,browser_pool,max_depth=5)
-        contentMappingList=get_filtered_content_mapping(current_user,data.botID,mapping)
-        return {SUCCESS:True, RESULT:contentMappingList }
-    except:
-        raise HTTPException(status_code=501, detail="Something Went wrong")
+    # try:
+    mapping= await get_all_urls_mapping(data.url,max_depth=5)
+    contentMappingList=get_filtered_content_mapping(current_user,data.botID,mapping)
+    return {SUCCESS:True, RESULT:contentMappingList }
+    # except:
+    #     raise HTTPException(status_code=501, detail="Something Went wrong")
     
     
 @privateApi.post("/add_url")
@@ -203,7 +188,7 @@ async def train_model(data:TrainingModel,background_tasks: BackgroundTasks,curre
                 data.data.remove(item)    
             elif item[STATUS] == REMOVING:
                 data.data.remove(item)    
-    new_url_mapping=await get_url_list_mapping(newlyAddedUrl,browser_pool=get_browser_pool())
+    new_url_mapping=await get_url_list_mapping(newlyAddedUrl)
     filtered_mapping = get_filtered_content_mapping(current_user, data.botID, new_url_mapping)   
     final_mapping= data.data + filtered_mapping
     update_final_mappings(current_user,data.botID,final_mapping)

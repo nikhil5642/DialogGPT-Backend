@@ -11,18 +11,21 @@ import asyncio
 import cloudscraper
 from src.logger.logger import GlobalLogger
 import concurrent.futures
-from threading import Lock
-from src.scripts.scrapper import MAX_THREADS
+from src.scripts.scrapper import MAX_THREADS, BrowserPool,  LazyBrowserPool
+
+def get_browser_pool():
+    return LazyBrowserPool.get_instance()
 
 async def get_url_list_mapping(urls,browser_pool):
     mappings={}
+    browser_pool = BrowserPool()
+
     loop = asyncio.get_event_loop()
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         # Fetch content in parallel
-        results = await loop.run_in_executor(
-                executor,
-                lambda: list(load_page_source, urls, [browser_pool]*len(urls))
-            )
+        tasks = [(url, browser_pool) for url in urls]
+        results = await asyncio.gather(*[loop.run_in_executor(executor, load_page_source, *task) for task in tasks])
+       
         for url, result in zip(urls, results):
             if result is None:
                 continue
@@ -32,7 +35,7 @@ async def get_url_list_mapping(urls,browser_pool):
             
             if page_text:
                 mappings[url] = page_text
-                    
+    browser_pool.shutdown()
     return mappings
 
 def isValidUrl(url):
@@ -57,7 +60,7 @@ def resolve_redirects(url):
         GlobalLogger().error(e)
         return url
     
-def fetch_url_content(url, base_url, browser_pool):
+def fetch_url_content(url, base_url,browser_pool):
     new_urls = []
     try:
         page_source = load_page_source(url, browser_pool)
@@ -86,7 +89,7 @@ def load_page_source(url, browser_pool):
     return page_source
 
 
-async def get_all_urls_mapping(base_url,browser_pool, max_depth=5):
+async def get_all_urls_mapping(base_url, max_depth=5):
     # Resolve any redirects for the base URL to fetch the content
     resolved_url = resolve_redirects(base_url)
     
@@ -94,30 +97,36 @@ async def get_all_urls_mapping(base_url,browser_pool, max_depth=5):
     urls_to_visit = [(resolved_url, 1)]  # Start with the resolved URL to fetch content
     url_text_mapping = {}
     
-    loop = asyncio.get_event_loop()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
-        while urls_to_visit and len(visited_urls) < 50:
-            current_urls = [url for url, depth in urls_to_visit if depth <= max_depth]
-            current_depths = [depth for url, depth in urls_to_visit if depth <= max_depth]
-            # Mark current_urls as visited immediately
-            visited_urls.update(current_urls)
+    browser_pool = BrowserPool()
+    try:
+        loop = asyncio.get_event_loop()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+            while urls_to_visit and len(visited_urls) < 50:
+                current_urls = [url for url, depth in urls_to_visit if depth <= max_depth]
+                current_depths = [depth for url, depth in urls_to_visit if depth <= max_depth]
+                # Mark current_urls as visited immediately
+                visited_urls.update(current_urls)
 
-            urls_to_visit = [item for item in urls_to_visit if item[0] not in current_urls]
+                urls_to_visit = [item for item in urls_to_visit if item[0] not in current_urls]
 
-            # Fetch content in parallel
-            results = await loop.run_in_executor(
-                executor,
-                lambda: list(map(fetch_url_content, current_urls, [base_url]*len(current_urls), [browser_pool]*len(current_urls)))
-            )
-            for url, depth, result in zip(current_urls, current_depths, results):
-                if result is None:
-                    continue
-                page_text, new_urls = result
-                if page_text:
-                    url_text_mapping[url] = page_text
-                    for new_url in new_urls :
-                        if new_url not in visited_urls and new_url not in [item[0] for item in urls_to_visit]:
-                            urls_to_visit.append((new_url, depth + 1))
+                # Fetch content in parallel
+                results = await loop.run_in_executor(
+                    executor,
+                    lambda: list(map(fetch_url_content, current_urls, [base_url]*len(current_urls), [browser_pool]*len(current_urls)))
+                )
+                for url, depth, result in zip(current_urls, current_depths, results):
+                    if result is None:
+                        continue
+                    page_text, new_urls = result
+                    if page_text:
+                        url_text_mapping[url] = page_text
+                        for new_url in new_urls :
+                            if new_url not in visited_urls and new_url not in [item[0] for item in urls_to_visit]:
+                                urls_to_visit.append((new_url, depth + 1))
+    except:
+        pass
+    finally:
+        browser_pool.shutdown()
     return url_text_mapping
 
 
