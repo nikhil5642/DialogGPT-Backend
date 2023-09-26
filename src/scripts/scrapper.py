@@ -68,5 +68,5 @@ class BrowserPool:
 
 # ... Rest of the functions ...
 
-MAX_BROWSERS = 3
+MAX_BROWSERS = 5
 MAX_THREADS = 10  # Adjust based on system's capability
