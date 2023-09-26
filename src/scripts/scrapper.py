@@ -4,7 +4,7 @@ import platform
 from queue import Queue
 from fake_useragent import UserAgent
 
-MAX_BROWSERS = 5
+MAX_BROWSERS = 2  # Adjust based on system's capability
 MAX_THREADS = 10  # Adjust based on system's capability
 
 class LazyBrowserPool:
