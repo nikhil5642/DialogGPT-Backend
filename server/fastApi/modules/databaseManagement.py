@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from DataBase.MongoDB import getChatBotConfigCollection, getContentStoreCollection, getUsersCollection,getChatBotsCollection
 from src.BaseConstants import BASE_CHAT_BUBBLE_COLOR, BASE_CHAT_INITIAL_MESSAGE, BASE_CHATGPT_PROMPT, BASE_USER_MSG_COLOR
-from src.DataBaseConstants import BASE_PROMPT, COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, GPT_3_5_TURBO, INTERFACE, LAST_UPDATED, LIGHT, MESSAGE_CREDITS, MESSAGE_LIMIT,MESSAGE_USED, MODEL, MODEL_VERSION, PROMPT, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, TEMPERATURE, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID,INITIAL_MESSAGE,QUICK_PROMPTS,THEME,PROFILE_PICTURE,USER_MSG_COLOR,DISPLAY_NAME,CHAT_ICON,CHAT_BUBBLE_COLOR
+from src.DataBaseConstants import BASE_PROMPT, COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, GPT_3_5_TURBO, INTERFACE, LAST_UPDATED, LIGHT, MESSAGE_CREDITS, MESSAGE_LIMIT,MESSAGE_USED, MODEL, MODEL_VERSION, PROMPT, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, TEMPERATURE, TRAINED, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID,INITIAL_MESSAGE,QUICK_PROMPTS,THEME,PROFILE_PICTURE,USER_MSG_COLOR,DISPLAY_NAME,CHAT_ICON,CHAT_BUBBLE_COLOR
 from src.data_sources.utils import generateContentItem
 from src.logger.logger import GlobalLogger
 from typing import List, Dict
@@ -47,7 +47,11 @@ def createChatBot(uid:str,chatbotname):
     return botID
 
 def updateChatBotStatus(uid,botID,status):
-    getChatBotsCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {CHATBOT_STATUS: status}})
+    if status==TRAINED:
+        getChatBotsCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {CHATBOT_STATUS: status,LAST_UPDATED:datetime.now()}})
+    else:
+        getChatBotsCollection().update_one({USER_ID: uid, CHATBOT_ID: botID}, {"$set": {CHATBOT_STATUS: status}})
+    
     user = getUsersCollection().find_one({USER_ID: uid})
     if user is None:
         HTTPException(status_code=404, detail="Something Went wrong")
@@ -56,8 +60,11 @@ def updateChatBotStatus(uid,botID,status):
     for bot in bot_id_list:
         if(bot[CHATBOT_ID]==botID):
             bot[CHATBOT_STATUS]=status
-            bot[LAST_UPDATED]=datetime.now()
+            if(status==TRAINED):
+                bot[LAST_UPDATED]=datetime.now()
+   
     getUsersCollection().update_one({USER_ID: uid}, {"$set": {CHATBOT_LIST: bot_id_list}})
+        
     
 def updateChatbotName(uid,botID,newName):
     user = getUsersCollection().find_one({USER_ID: uid})
