@@ -16,7 +16,9 @@ from src.scripts.scrapper import MAX_THREADS, BrowserPool,  LazyBrowserPool
 def get_browser_pool():
     return LazyBrowserPool.get_instance()
 
-async def get_url_list_mapping(urls,browser_pool):
+async def get_url_list_mapping(urls):
+    if urls is None or len(urls) == 0:
+        return {}
     mappings={}
     browser_pool = BrowserPool()
 
