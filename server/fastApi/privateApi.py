@@ -4,7 +4,7 @@ from DataBase.MongoDB import getChatBotsCollection
 from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed,deleteChatbot
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
 from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook
-from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_ID, MESSAGE_CREDITS, MESSAGE_USED, REMOVING, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,UNTRAINED,CHATBOT_LIMIT
+from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_ID, GPT_3_5_TURBO, GPT_4, MESSAGE_CREDITS, MESSAGE_USED, REMOVING, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,UNTRAINED,CHATBOT_LIMIT
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from src.data_sources.text_loader import saveText
@@ -211,9 +211,13 @@ def reply(reply:ReplyModel):
         uid= getChatBotsCollection().find_one({CHATBOT_ID:reply.botID}).get(USER_ID)
         userDoc= getUserInfo(uid)
         msgCredits=getMessageCredits(userDoc)[MESSAGE_CREDITS]
-        if(msgCredits>0):
-            chat_reply=replyToQuery(reply.botID,reply.query,reply.history[-5:])
+        model=getChatModel(reply.botID)
+        if(model==GPT_3_5_TURBO and msgCredits>0):
+            chat_reply=replyToQuery(model,reply.botID,reply.query,reply.history[-5:])
             updateMessageUsed(uid,userDoc.get(MESSAGE_USED,0)+1)
+        elif(model==GPT_4 and msgCredits>20):
+            chat_reply=replyToQuery(model,reply.botID,reply.query,reply.history[-5:])
+            updateMessageUsed(uid,userDoc.get(MESSAGE_USED,0)+20)
         else:
             chat_reply="Credit Limit Exceeded"
         return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
@@ -287,6 +291,8 @@ async def stripe_webhook(request: Request):
         payload = await request.body()
         sig_header = request.headers.get('stripe-signature')
         return  manageWebhook(payload,sig_header)
+    except HTTPException as e:  # Catch the specific exception
+        raise e  # 
     except:
         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
     

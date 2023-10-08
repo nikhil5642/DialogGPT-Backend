@@ -210,7 +210,7 @@ def handle_subscription_creation(user_id,subscription_status,subscription_plan,s
         }}
     )
 
-def handle_subscription_update(user_id,subscription_status,subscription_plan):
+def handle_subscription_update(user_id,subscription_status,subscription_plan,message_limit):
         
     if(subscription_status==SUBSCRIPTION_CANCELED):
         getUsersCollection().update_one(
@@ -218,7 +218,7 @@ def handle_subscription_update(user_id,subscription_status,subscription_plan):
         {'$set': {
             SUBSCRIPTION_STATUS: subscription_status,
             SUBSCRIPTION_PLAN: subscription_plan,
-            MESSAGE_LIMIT:30,
+            MESSAGE_LIMIT:0,
             MESSAGE_USED:0
         }}
         )
@@ -228,6 +228,7 @@ def handle_subscription_update(user_id,subscription_status,subscription_plan):
         {'$set': {
             SUBSCRIPTION_STATUS: subscription_status,
             SUBSCRIPTION_PLAN: subscription_plan,
+            MESSAGE_LIMIT:message_limit,
         }}
     )
     
@@ -235,11 +236,11 @@ def handle_subscription_update(user_id,subscription_status,subscription_plan):
 def handle_subscription_deletion(subscriptio_id):
     getUsersCollection().update_one(
         {SUBSCRIPTION_ID: subscriptio_id},
-        { '$unset': {
+        { '$set': {
             SUBSCRIPTION_STATUS: "",
             SUBSCRIPTION_PLAN: FREE_PLAN,
             SUBSCRIPTION_ID:None,
-            MESSAGE_LIMIT:30,
+            MESSAGE_LIMIT:0,
             MESSAGE_USED:0
             },
          } 
@@ -247,3 +248,6 @@ def handle_subscription_deletion(subscriptio_id):
 
 
 
+def to_camel_case(s):
+    parts = s.split('_')
+    return parts[0] + ''.join(p.capitalize() for p in parts[1:])

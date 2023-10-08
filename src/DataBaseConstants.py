@@ -37,6 +37,7 @@ ERROR="error"
 
 PRO_PLAN="pro"
 ESSENTIALS_PLAN="essential"
+BASIC_PLAN="basic"
 FREE_PLAN="free"
 SUBSCRIPTION="subscription"
 SUBSCRIPTION_STATUS="subscription_status"
