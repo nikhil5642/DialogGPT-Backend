@@ -3,7 +3,7 @@ from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
 from DataBase.MongoDB import getChatBotsCollection
 from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed,deleteChatbot
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
-from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook
+from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook, subscription_management_url
 from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_ID, GPT_3_5_TURBO, GPT_4, MESSAGE_CREDITS, MESSAGE_USED, REMOVING, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,UNTRAINED,CHATBOT_LIMIT
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -283,7 +283,15 @@ def createCheckoutSessionApi(data:SubscriptionModel,current_user: str = Depends(
         return {SUCCESS:True, RESULT: session}
     except:
         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
-      
+
+@privateApi.get("/manage_subscription")
+def createCheckoutSessionApi(current_user: str = Depends(get_current_user)):
+    try:
+        url =subscription_management_url(current_user)
+        return {SUCCESS:True, RESULT: url}
+    except:
+        raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+    
 
 @privateApi.post("/stripe-webhook")
 async def stripe_webhook(request: Request):

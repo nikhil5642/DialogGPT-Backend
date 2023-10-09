@@ -217,3 +217,15 @@ def add_metadata_to_subscription(subscription_id, metadata):
     Add metadata to a Stripe subscription.
     """
     stripe.Subscription.modify(subscription_id, metadata=metadata)
+
+def subscription_management_url(user_id):
+    old_subscription_id=get_subscription_id(user_id)
+    # Fetch the subscription to get the customer ID
+    subscription = stripe.Subscription.retrieve(old_subscription_id)
+    customer_id = subscription.customer
+    # Create a session for the Stripe Customer Portal
+    session = stripe.billing_portal.Session.create(
+        customer=customer_id,
+        return_url=WEBSITE_BASE_URL+"/pricing"  
+    )
+    return session.url
