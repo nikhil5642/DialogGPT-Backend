@@ -33,7 +33,7 @@ Helpful answer in markdown:'''
 
 # pinecone.init(api_key=PINECONE_API_KEY,environment=PINECONE_ENV)   
 
-def replyToQuery(botID,query,chat_history):   
+def replyToQuery(model,botID,query,chat_history):   
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
     for chat in chat_history:
         if chat.type=="incoming":
@@ -41,7 +41,6 @@ def replyToQuery(botID,query,chat_history):
         else:
             memory.chat_memory.add_user_message(chat.text)
             
-    model=getChatModel(botID)
     temp_qa_prompt= model[PROMPT]+qa_prompt
     QA_PROMPT = PromptTemplate(template=temp_qa_prompt, input_variables=["context", "question"])
     CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(condense_prompt)
