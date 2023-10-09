@@ -3,6 +3,7 @@ from DataBase.MongoDB import getChatBotConfigCollection, getContentStoreCollecti
 from src.BaseConstants import BASE_CHAT_BUBBLE_COLOR, BASE_CHAT_INITIAL_MESSAGE, BASE_CHATGPT_PROMPT, BASE_USER_MSG_COLOR
 from src.DataBaseConstants import BASE_PROMPT, COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, GPT_3_5_TURBO, INTERFACE, LAST_UPDATED, LIGHT, MESSAGE_CREDITS, MESSAGE_LIMIT,MESSAGE_USED, MODEL, MODEL_VERSION, PROMPT, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, TEMPERATURE, TRAINED, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID,INITIAL_MESSAGE,QUICK_PROMPTS,THEME,PROFILE_PICTURE,USER_MSG_COLOR,DISPLAY_NAME,CHAT_ICON,CHAT_BUBBLE_COLOR
 from src.data_sources.utils import generateContentItem
+from src.emailSender.sendEmail import sendWelcomeEmail
 from src.logger.logger import GlobalLogger
 from typing import List, Dict
 import uuid
@@ -15,6 +16,7 @@ def createUserIfNotExist(uid:str,email:str):
         getUsersCollection().insert_one({USER_ID:uid,EMAIL_ID:email,MESSAGE_USED:0,
             MESSAGE_LIMIT:30,SUBSCRIPTION_PLAN:FREE_PLAN,SUBSCRIPTION_STATUS:COMPLETE})
         GlobalLogger().debug("User created successfully UID: "+uid)
+        sendWelcomeEmail(email)
 
 def getUserInfo(uid):
     return getUsersCollection().find_one({USER_ID:uid},{"_id": 0, CHATBOT_LIST:0}) or {}
