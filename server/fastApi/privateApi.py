@@ -175,9 +175,8 @@ def fetchURLs(data:ContentModel):
         return {SUCCESS:True, RESULT:getContent(data.contentID)}
     except:
         raise HTTPException(status_code=404, detail="Something Went wrong")
-    
-@privateApi.post("/train_chatbot")
-async def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_user: str = Depends(get_current_user)):
+
+async def updateURLDataAsync(data:TrainingModel,current_user: str):
     newlyAddedUrl = []
     if(len(data.data))<1:
         return {SUCCESS:False,RESULT:"Can't train on empty"}
@@ -192,6 +191,17 @@ async def train_model(data:TrainingModel,background_tasks: BackgroundTasks,curre
     filtered_mapping = get_filtered_content_mapping(current_user, data.botID, new_url_mapping)   
     final_mapping= data.data + filtered_mapping
     update_final_mappings(current_user,data.botID,final_mapping)
+    return final_mapping
+
+
+@privateApi.post("/update_url_data")
+async def updateURLData(data:TrainingModel,current_user: str = Depends(get_current_user)):
+    final_mappings=await updateURLDataAsync(data,current_user)
+    return {SUCCESS:True,RESULT:final_mappings} 
+
+@privateApi.post("/train_chatbot")
+async def train_model(data:TrainingModel,background_tasks: BackgroundTasks,current_user: str = Depends(get_current_user)):
+    final_mapping=await updateURLDataAsync(data,current_user)
     updateChatBotStatus(current_user,data.botID,TRAINING)
     def train_async():
         try:
@@ -204,6 +214,7 @@ async def train_model(data:TrainingModel,background_tasks: BackgroundTasks,curre
             
     background_tasks.add_task(train_async)
     return {SUCCESS:True,RESULT:"Chatbot is training, Please Wait"}
+
 
 @privateApi.post("/reply")
 def reply(reply:ReplyModel):
