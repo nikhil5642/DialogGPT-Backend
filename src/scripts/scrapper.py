@@ -3,6 +3,7 @@ from selenium.webdriver.chrome.options import Options
 import platform
 from queue import Queue
 from fake_useragent import UserAgent
+from src.logger.logger import GlobalLogger
 
 MAX_BROWSERS = 2  # Adjust based on system's capability
 MAX_THREADS = 10  # Adjust based on system's capability
@@ -60,7 +61,7 @@ class BrowserPool:
             return browser
         except Exception as e:
             # Log or print the exception for debugging
-            print(f"Error creating browser: {e}")
+             GlobalLogger().debug(f"Error creating browser: {e}")
             # Consider retrying or returning None, then handle this in the calling method
 
     def get(self):
