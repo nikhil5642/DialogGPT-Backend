@@ -223,7 +223,6 @@ def reply(reply:ReplyModel):
         userDoc= getUserInfo(uid)
         msgCredits=getMessageCredits(userDoc)[MESSAGE_CREDITS]
         model=getChatModel(reply.botID)
-        print(model,GPT_3_5_TURBO,GPT_4)
         if(model[MODEL_VERSION]==GPT_3_5_TURBO and msgCredits>0):
             chat_reply=replyToQuery(model,reply.botID,reply.query,reply.history[-5:])
             updateMessageUsed(uid,userDoc.get(MESSAGE_USED,0)+1)

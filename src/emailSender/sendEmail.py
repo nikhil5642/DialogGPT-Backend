@@ -52,7 +52,7 @@ def sendEmail(sender, receiver, subject, msg, msg_type='plain'):
 
 
 if __name__ == "__main__":
-    print("send email")
+    # print("send email")
     sendWelcomeEmail("nikhilagrawal5642@gmail.com")
     sendWelcomeEmail("support@dialoggpt.io")
     
