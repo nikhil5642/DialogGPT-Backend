@@ -13,7 +13,7 @@ Hello there,<br><br>
 
 🎉 A huge welcome to the DialogGPT community! 🎉<br><br>
 
-We're thrilled to have you on board. Here's why joining us is one of the best decisions you've made:
+We're thrilled to have you on board. Here's why joining us is one of the best decisions you've made:<br><br>
 
 🤖 <b>State-of-the-Art Conversations</b>: With DialogGPT, you're not just using any chatbot. You're experiencing the future of communication, powered by cutting-edge AI technology.<br><br>
 
