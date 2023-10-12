@@ -21,9 +21,10 @@ STATUS="status"
 TRAINED="trained"
 TRAINING="training"
 UNTRAINED="untrained"
-
+CHAT_ID="chat_id"
 NEWLY_ADDED="newlyAdded"
 REMOVING="removing"
+HISTORY="history"
 
 URL='url'
 TEXT="text"

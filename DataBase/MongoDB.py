@@ -11,6 +11,7 @@ class MongoDBCollections:
     CHATBOTS_COLLECTION = "chatbot_list"
     CONTENT_COLLECTION = "content_list"
     CHATBOTS_CONFIG = "chatbot_config"
+    CHATBOTS_HISTORY = "chatbot_history"
 
 
 class MongoManager:
@@ -48,6 +49,9 @@ def getContentStoreCollection():
 
 def getChatBotConfigCollection():
     return MongoManager.getInstance()[MongoDBCollections.CHATBOTS_CONFIG]
+
+def getChatHistoryCollection():
+    return MongoManager.getInstance()[MongoDBCollections.CHATBOTS_HISTORY]
 
 if __name__ == '__main__':
     db = MongoManager.getInstance()
