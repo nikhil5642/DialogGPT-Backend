@@ -1,7 +1,7 @@
 from fastapi import HTTPException
-from DataBase.MongoDB import getChatBotConfigCollection, getContentStoreCollection, getUsersCollection,getChatBotsCollection
+from DataBase.MongoDB import getChatBotConfigCollection, getChatHistoryCollection, getContentStoreCollection, getUsersCollection,getChatBotsCollection
 from src.BaseConstants import BASE_CHAT_BUBBLE_COLOR, BASE_CHAT_INITIAL_MESSAGE, BASE_CHATGPT_PROMPT, BASE_USER_MSG_COLOR
-from src.DataBaseConstants import BASE_PROMPT, COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, GPT_3_5_TURBO, INTERFACE, LAST_UPDATED, LIGHT, MESSAGE_CREDITS, MESSAGE_LIMIT,MESSAGE_USED, MODEL, MODEL_VERSION, PROMPT, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, TEMPERATURE, TRAINED, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID,INITIAL_MESSAGE,QUICK_PROMPTS,THEME,PROFILE_PICTURE,USER_MSG_COLOR,DISPLAY_NAME,CHAT_ICON,CHAT_BUBBLE_COLOR
+from src.DataBaseConstants import BASE_PROMPT, CHAT_ID, COMPLETE, CONTENT_LIST, EMAIL_ID, FREE_PLAN, GPT_3_5_TURBO, HISTORY, INTERFACE, LAST_UPDATED, LIGHT, MESSAGE_CREDITS, MESSAGE_LIMIT,MESSAGE_USED, MODEL, MODEL_VERSION, PROMPT, SUBSCRIPTION_CANCELED, SUBSCRIPTION_PLAN, SUBSCRIPTION_STATUS, TEMPERATURE, TRAINED, USER_ID,CHATBOT_ID,CHATBOT_LIST,CONTENT_ID,CONTENT,CHATBOT_NAME,CHATBOT_STATUS,CREATED_ON,CHAR_COUNT,SUBSCRIPTION_ID,INITIAL_MESSAGE,QUICK_PROMPTS,THEME,PROFILE_PICTURE,USER_MSG_COLOR,DISPLAY_NAME,CHAT_ICON,CHAT_BUBBLE_COLOR
 from src.data_sources.utils import generateContentItem
 from src.emailSender.sendEmail import sendWelcomeEmail
 from src.logger.logger import GlobalLogger
@@ -187,6 +187,34 @@ def deleteChatbot(uid,botID):
    
 def deleteContentID(contentIdList):
     getContentStoreCollection().delete_many({CONTENT_ID: {'$in': contentIdList}})
+
+def storeChatHistory(botId,chatId,history):
+    history = [message.dict() for message in history]
+    existing_history = getChatHistoryCollection().find_one({CHAT_ID: chatId})
+    if existing_history:
+        getChatHistoryCollection().update_one(
+            {CHAT_ID: chatId},
+            {"$set": {HISTORY: history,LAST_UPDATED:datetime.now()}}
+        )
+    else:
+        getChatHistoryCollection().insert_one({
+            CHAT_ID: chatId,
+            CHATBOT_ID: botId,
+            HISTORY: history,
+            LAST_UPDATED:datetime.now()
+        })
+def getChatHistory(chatbotId):
+    # Assuming you have a function getChatHistoryCollection that returns the MongoDB collection
+    cursor = getChatHistoryCollection().find({CHATBOT_ID: chatbotId}, {"_id": 0})
+
+    # Convert the cursor to a list
+    history_list = list(cursor)
+
+    if history_list:
+        return history_list
+    else:
+        return []
+
 
 def get_subscription_plan(user_id: str) -> str:
     user_document = getUsersCollection().find_one({USER_ID: user_id})

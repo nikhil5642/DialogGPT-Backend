@@ -1,7 +1,7 @@
 from typing import List, Literal, Optional
 from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
 from DataBase.MongoDB import getChatBotsCollection
-from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed,deleteChatbot
+from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatHistory, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, storeChatHistory, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed,deleteChatbot
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
 from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook, subscription_management_url
 from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_ID, GPT_3_5_TURBO, GPT_4, MESSAGE_CREDITS, MESSAGE_USED, MODEL_VERSION, REMOVING, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,UNTRAINED,CHATBOT_LIMIT
@@ -64,6 +64,7 @@ class ChatMessageModel(BaseModel):
 
 class ReplyModel(BaseChatBotModel):
     query:str
+    chatId:str
     history:List[ChatMessageModel]
     
 class SubscriptionModel(BaseModel):
@@ -231,7 +232,18 @@ def reply(reply:ReplyModel):
             updateMessageUsed(uid,userDoc.get(MESSAGE_USED,0)+20)
         else:
             chat_reply="Credit Limit Exceeded"
+        history=reply.history
+        history.append(ChatMessageModel(id=len(history),text=chat_reply,type="incoming"))
+        storeChatHistory(reply.botID,reply.chatId,history)
         return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+    
+@privateApi.post("/fetch_chatbot_history")
+def fetchChatbotHistory(data:BaseChatBotModel,_: str = Depends(get_current_user)):
+    try:
+        
+        return {SUCCESS:True,RESULT:getChatHistory(data.botID)}
     except:
          raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
     
