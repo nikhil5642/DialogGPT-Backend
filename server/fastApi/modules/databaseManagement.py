@@ -194,15 +194,27 @@ def storeChatHistory(botId,chatId,history):
     if existing_history:
         getChatHistoryCollection().update_one(
             {CHAT_ID: chatId},
-            {"$set": {HISTORY: history}}
+            {"$set": {HISTORY: history,LAST_UPDATED:datetime.now()}}
         )
     else:
         getChatHistoryCollection().insert_one({
             CHAT_ID: chatId,
             CHATBOT_ID: botId,
-            HISTORY: history
+            HISTORY: history,
+            LAST_UPDATED:datetime.now()
         })
-   
+def getChatHistory(chatbotId):
+    # Assuming you have a function getChatHistoryCollection that returns the MongoDB collection
+    cursor = getChatHistoryCollection().find({CHATBOT_ID: chatbotId}, {"_id": 0})
+
+    # Convert the cursor to a list
+    history_list = list(cursor)
+
+    if history_list:
+        return history_list
+    else:
+        return []
+
 
 def get_subscription_plan(user_id: str) -> str:
     user_document = getUsersCollection().find_one({USER_ID: user_id})
