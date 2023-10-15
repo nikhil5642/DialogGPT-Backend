@@ -233,7 +233,8 @@ def reply(reply:ReplyModel):
         else:
             chat_reply="Credit Limit Exceeded"
         history=reply.history
-        history.append(ChatMessageModel(id=len(history),text=chat_reply,type="incoming"))
+        history.append(ChatMessageModel(id=len(history)+1,text=reply.query,type="outgoing"))
+        history.append(ChatMessageModel(id=len(history)+1,text=chat_reply,type="incoming"))
         storeChatHistory(reply.botID,reply.chatId,history)
         return {SUCCESS:True,RESULT:{QUERY:reply.query,REPLY:chat_reply}}
     except:
