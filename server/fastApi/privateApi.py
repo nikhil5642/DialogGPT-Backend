@@ -1,7 +1,7 @@
 from typing import List, Literal, Optional
 from fastapi import Depends, FastAPI, HTTPException, BackgroundTasks, Request
 from DataBase.MongoDB import getChatBotsCollection
-from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatHistory, getChatInterface, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, storeChatHistory, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed,deleteChatbot
+from server.fastApi.modules.databaseManagement import createChatBot, createUserIfNotExist, get_subscription_plan, getChatBotInfo, getChatHistory, getChatInterface, getChatLeadCollection, getChatModel, getContent, getContentMappingList, getMessageCredits, getRemainingMessageCredits, getUserInfo, getUserChatBotInfo, setLeadsCollection, storeChatHistory, storeLead, updateChatBotStatus, updateChatInterface, updateChatModel, updateChatbotName, updateMessageUsed,deleteChatbot
 from server.fastApi.modules.firebase_verification import  generate_JWT_Token, get_current_user, verifyFirebaseLogin
 from server.fastApi.modules.stripeSubscriptionMangement import createStripeCheckoutSession, manageWebhook, subscription_management_url
 from src.DataBaseConstants import CHATBOT_ID, CHATBOT_STATUS, CONTENT_ID, GPT_3_5_TURBO, GPT_4, MESSAGE_CREDITS, MESSAGE_USED, MODEL_VERSION, REMOVING, RESULT, SOURCE, SOURCE_TYPE, STATUS, SUCCESS,CHATBOT_LIST, TRAINED, URL,NEWLY_ADDED, USER_ID,TRAINING,QUERY,REPLY,UNTRAINED,CHATBOT_LIMIT
@@ -79,6 +79,15 @@ class ChatBotInterfaceModel(BaseChatBotModel):
     displayName: str
     chatIcon: Optional[str]
     chatBubbleColor: str
+
+class ChatBotLeadsModel(BaseChatBotModel):
+    leads:List[str]
+
+class ChatBotLeadsCollectModel(BaseChatBotModel):
+    chatId:str
+    name:Optional[str]
+    email:Optional[str]
+    phone:Optional[str]
     
 class ChatBotModelModel(BaseChatBotModel):
     prompt: str
@@ -271,6 +280,28 @@ def updateChatbotModel(data:ChatBotModelModel,current_user: str = Depends(get_cu
     except:
          raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
 
+@privateApi.post("/fetch_chatbot_leads_info")
+def fetchChatBotInterface(data: BaseChatBotModel):
+    try:
+        return {SUCCESS:True,RESULT:getChatLeadCollection(data.botID)}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+
+@privateApi.post("/update_chatbot_leads_info")
+def updateChatBotInterface(data:ChatBotLeadsModel,current_user: str = Depends(get_current_user)):
+    try:
+        setLeadsCollection(current_user,data.botID,data.leads)
+        return {SUCCESS:True}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
+
+@privateApi.post("/store_lead_info")
+def updateChatBotInterface(data:ChatBotLeadsCollectModel):
+    try:
+        storeLead(data.chatId,data.name,data.email,data.phone)
+        return {SUCCESS:True}
+    except:
+         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
 
 @privateApi.post("/fetch_chatbot_interface")
 def fetchChatBotInterface(data: BaseChatBotModel):

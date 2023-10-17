@@ -63,6 +63,11 @@ DISPLAY_NAME="display_name"
 CHAT_ICON="chat_icon"
 CHAT_BUBBLE_COLOR="chat_bubble_color"
 INTERFACE="interface"
+LEADS_COLLECTION="leads_collection"
+
+LEAD_NAME="lead_name"
+LEAD_EMAIL="lead_email"
+LEAD_PHONE="lead_phone"
 
 BASE_PROMPT="base_prompt"
 PROMPT="prompt"
