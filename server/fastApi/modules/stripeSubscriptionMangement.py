@@ -173,7 +173,7 @@ def get_converted_amount(amount, original_currency, target_currency):
 
 
 def create_new_subscription_checkout_session(user_id, plan_id, price_id):
-    subscription_data = {"trial_period_days": 14} if "basic" in plan_id.lower() else {}
+    subscription_data = {"trial_period_days": 7} if "basic" in plan_id.lower() else {}
     return stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[
