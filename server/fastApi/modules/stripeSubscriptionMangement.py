@@ -86,6 +86,7 @@ def createStripeCheckoutSession(user_id, plan_id):
                     calculate_proration_item(old_subscription_id, price_id, name)
                 ],
                 mode="payment",
+                allow_promotion_codes=True,
                 success_url=WEBSITE_BASE_URL + "/my-chatbots",
                 cancel_url=WEBSITE_BASE_URL + "/pricing",
                 metadata={
@@ -183,6 +184,7 @@ def create_new_subscription_checkout_session(user_id, plan_id, price_id):
             }
         ],
         mode="subscription",
+        allow_promotion_codes=True,
         success_url=WEBSITE_BASE_URL + "/my-chatbots",
         cancel_url=WEBSITE_BASE_URL + "/pricing",
         metadata=generateNewMetaData(user_id, plan_id),
