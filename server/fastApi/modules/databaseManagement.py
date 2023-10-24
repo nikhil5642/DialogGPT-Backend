@@ -119,7 +119,7 @@ def createChatBot(uid: str, chatbotname):
     botID = str(uuid.uuid4())
     bot_id_list = user.get(CHATBOT_LIST, [])
     max_allowed_bots = getChatBotLimitAsPerPlan(user.get(SUBSCRIPTION_PLAN, FREE_PLAN))
-    if len(bot_id_list) >= max_allowed_bots:
+    if not user.get(IS_FIRST_TIME_USER, False) and len(bot_id_list) >= max_allowed_bots:
         raise HTTPException(
             status_code=400,
             detail="You have reached the maximum limit of chatbots for your plan",
