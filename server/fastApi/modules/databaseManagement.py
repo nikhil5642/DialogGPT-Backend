@@ -58,6 +58,7 @@ from src.DataBaseConstants import (
     LEAD_NAME,
     LEAD_PHONE,
     IS_FIRST_TIME_USER,
+    PRICING_DURATION
 )
 from src.data_sources.utils import generateContentItem
 from src.emailSender.sendEmail import sendWelcomeEmail
@@ -494,7 +495,7 @@ def get_subscription_id(user_id: str) -> str:
 
 
 def handle_subscription_creation(
-    user_id, subscription_status, subscription_plan, subscription_id, message_limit
+    user_id, subscription_status, subscription_plan,duration, subscription_id, message_limit
 ):
     getUsersCollection().update_one(
         {USER_ID: user_id},
@@ -504,13 +505,14 @@ def handle_subscription_creation(
                 SUBSCRIPTION_PLAN: subscription_plan,
                 SUBSCRIPTION_ID: subscription_id,
                 MESSAGE_LIMIT: message_limit,
+                PRICING_DURATION:duration
             }
         },
     )
 
 
 def handle_subscription_update(
-    user_id, subscription_status, subscription_plan, message_limit
+    user_id, subscription_status, subscription_plan,duration, message_limit
 ):
     if subscription_status == SUBSCRIPTION_CANCELED:
         getUsersCollection().update_one(
@@ -521,6 +523,7 @@ def handle_subscription_update(
                     SUBSCRIPTION_PLAN: subscription_plan,
                     MESSAGE_LIMIT: 0,
                     MESSAGE_USED: 0,
+                    PRICING_DURATION:duration
                 }
             },
         )
@@ -532,6 +535,7 @@ def handle_subscription_update(
                     SUBSCRIPTION_STATUS: subscription_status,
                     SUBSCRIPTION_PLAN: subscription_plan,
                     MESSAGE_LIMIT: message_limit,
+                    PRICING_DURATION:duration
                 }
             },
         )
@@ -547,6 +551,7 @@ def handle_subscription_deletion(subscriptio_id):
                 SUBSCRIPTION_ID: None,
                 MESSAGE_LIMIT: 0,
                 MESSAGE_USED: 0,
+                PRICING_DURATION:"",
             },
         },
     )

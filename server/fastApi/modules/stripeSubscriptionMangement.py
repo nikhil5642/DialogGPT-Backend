@@ -20,6 +20,7 @@ from src.DataBaseConstants import (
     PRO_PLAN,
     ESSENTIALS_PLAN,
     ID,
+    MONTHLY,YEARLY,PRICING_DURATION
 )
 import requests
 from src.scripts.chatbotUtils import getMessageLimitAsPerPlan
@@ -27,9 +28,12 @@ import time
 
 stripe.api_key = "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"
 
-SUBSCRIPTION_PRO = "price_1NmOk6SBubjVCHLvylBtaAiJ"
-SUBSCRIPTION_ESSENTIALS = "price_1NyDl5SBubjVCHLvz21h4vso"
-SUBSCRIPTION_BASIC = "price_1NyDofSBubjVCHLvdGoxWpyU"
+SUBSCRIPTION_MONTHLY_PRO = "price_1NmOk6SBubjVCHLvylBtaAiJ"
+SUBSCRIPTION_MONTHLY_ESSENTIALS = "price_1NyDl5SBubjVCHLvz21h4vso"
+SUBSCRIPTION_MONTHLY_BASIC = "price_1NyDofSBubjVCHLvdGoxWpyU"
+SUBSCRIPTION_YEARLY_PRO = "price_1NyUbvSBubjVCHLvVjD6INAr"
+SUBSCRIPTION_YEARLY_ESSENTIALS = "price_1NyUbeSBubjVCHLv097htY9y"
+SUBSCRIPTION_YEARLY_BASIC = "price_1NyUbBSBubjVCHLvm3U6znGh"
 STRIPE_WEBHOOK_SECRET = "whsec_rPIhd8WwG8gFqW5IctFOVcMB7Gxmd2kj"
 CURRENCY_LAYER_API_KEY = "cf717babe6b5b06c2d88c673cf345864"
 WEBSITE_BASE_URL = "https://dialoggpt.io"
@@ -38,9 +42,12 @@ WEBSITE_BASE_URL = "https://dialoggpt.io"
 # Test Keys
 # stripe.api_key="sk_test_51NlWuWSBubjVCHLvXTVthdf3CsRtD7tCSGXjvzzPDOeCzLg9N8bZfcDAw1NW0VjjxiM1R6acM6grcYdODRETSaLJ007kodrpRe"
 
-# SUBSCRIPTION_PRO= "price_1Nz3BMSBubjVCHLv7zWrqlcv"
-# SUBSCRIPTION_ESSENTIALS= "price_1Nz3LhSBubjVCHLvxBZAB2Zm"
-# SUBSCRIPTION_BASIC="price_1NypwASBubjVCHLv1vdbTuNu"
+# SUBSCRIPTION_MONTHLY_PRO= "price_1Nz3BMSBubjVCHLv7zWrqlcv"
+# SUBSCRIPTION_MONTHLY_ESSENTIALS= "price_1Nz3LhSBubjVCHLvxBZAB2Zm"
+# SUBSCRIPTION_MONTHLY_BASIC="price_1NypwASBubjVCHLv1vdbTuNu"
+# SUBSCRIPTION_YEARLY_PRO= "price_1Nz3BMSBubjVCHLv7zWrqlcv"
+# SUBSCRIPTION_YEARLY_ESSENTIALS= "price_1Nz3LhSBubjVCHLvxBZAB2Zm"
+# SUBSCRIPTION_YEARLY_BASIC="price_1NypwASBubjVCHLv1vdbTuNu"
 # STRIPE_WEBHOOK_SECRET="whsec_u1mQ0SXb8IJ0k0XWPhQ1nMW6mXHLA4yi"
 # CURRENCY_LAYER_API_KEY="cf717babe6b5b06c2d88c673cf345864"
 # WEBSITE_BASE_URL="http://localhost:3000"
@@ -48,17 +55,26 @@ WEBSITE_BASE_URL = "https://dialoggpt.io"
 # --------------------------------------------------------------------------------------------
 
 
-def getPriceId(plan_id):
+def getPriceId(plan_id,duration):
     if plan_id == PRO_PLAN:
-        return SUBSCRIPTION_PRO
+        if(duration==MONTHLY):
+            return SUBSCRIPTION_MONTHLY_PRO
+        else:
+            return SUBSCRIPTION_YEARLY_PRO
     elif plan_id == ESSENTIALS_PLAN:
-        return SUBSCRIPTION_ESSENTIALS
+        if(duration==MONTHLY):
+            return SUBSCRIPTION_MONTHLY_ESSENTIALS
+        else:
+            return SUBSCRIPTION_YEARLY_ESSENTIALS
     else:
-        return SUBSCRIPTION_BASIC
+        if(duration==MONTHLY):
+            return SUBSCRIPTION_MONTHLY_BASIC
+        else:
+            return SUBSCRIPTION_YEARLY_BASIC
 
 
-def createStripeCheckoutSession(user_id, plan_id):
-    price_id = getPriceId(plan_id)
+def createStripeCheckoutSession(user_id, plan_id,duration):
+    price_id = getPriceId(plan_id,duration)
     old_subscription_id = get_subscription_id(user_id)
     old_subscription_plan = get_subscription_plan(user_id)
 
@@ -92,16 +108,17 @@ def createStripeCheckoutSession(user_id, plan_id):
                 metadata={
                     USER_ID: user_id,
                     PLAN_ID: plan_id,
+                    PRICING_DURATION:duration,
                     SUBSCRIPTION_ID: old_subscription_id,
                 },
             )
         except:
             session = create_new_subscription_checkout_session(
-                user_id, plan_id, price_id
+                user_id, plan_id, price_id,duration
             )
         return session.id
     else:
-        session = create_new_subscription_checkout_session(user_id, plan_id, price_id)
+        session = create_new_subscription_checkout_session(user_id, plan_id, price_id,duration)
         return session.id
 
 
@@ -173,7 +190,7 @@ def get_converted_amount(amount, original_currency, target_currency):
     return int(amount * conversion_rate)
 
 
-def create_new_subscription_checkout_session(user_id, plan_id, price_id):
+def create_new_subscription_checkout_session(user_id, plan_id, price_id,duration):
     subscription_data = {"trial_period_days": 7} if "basic" in plan_id.lower() else {}
     return stripe.checkout.Session.create(
         payment_method_types=["card"],
@@ -187,7 +204,7 @@ def create_new_subscription_checkout_session(user_id, plan_id, price_id):
         allow_promotion_codes=True,
         success_url=WEBSITE_BASE_URL + "/my-chatbots",
         cancel_url=WEBSITE_BASE_URL + "/pricing",
-        metadata=generateNewMetaData(user_id, plan_id),
+        metadata=generateNewMetaData(user_id, plan_id,duration),
         subscription_data=subscription_data,
     )
 
@@ -213,16 +230,18 @@ def manageWebhook(payload, sig_header):
                 data.metadata[USER_ID],
                 data[STATUS],
                 data.metadata[PLAN_ID],
+                data.metadata.get(PRICING_DURATION,MONTHLY),
                 data.metadata[SUBSCRIPTION_ID],
-                getMessageLimitAsPerPlan(data.metadata[PLAN_ID]),
+                getMessageLimitAsPerPlan(data.metadata[PLAN_ID],data.metadata.get(PRICING_DURATION,MONTHLY)),
             )
         elif data[SUBSCRIPTION]:
             handle_subscription_creation(
                 data.metadata[USER_ID],
                 data[STATUS],
                 data.metadata[PLAN_ID],
+                data.metadata.get(PRICING_DURATION,MONTHLY),
                 data[SUBSCRIPTION],
-                getMessageLimitAsPerPlan(data.metadata[PLAN_ID]),
+                getMessageLimitAsPerPlan(data.metadata[PLAN_ID],data.metadata.get(PRICING_DURATION,MONTHLY)),
             )
             add_metadata_to_subscription(data[SUBSCRIPTION], data.metadata)
     elif event.type == "customer.subscription.updated":
@@ -231,7 +250,8 @@ def manageWebhook(payload, sig_header):
                 data.metadata[USER_ID],
                 data[STATUS],
                 data.metadata[PLAN_ID],
-                getMessageLimitAsPerPlan(data.metadata[PLAN_ID]),
+                data.metadata.get(PRICING_DURATION,MONTHLY),
+                getMessageLimitAsPerPlan(data.metadata[PLAN_ID],data.metadata.get(PRICING_DURATION,MONTHLY)),
             )
     elif event.type == "customer.subscription.deleted":
         handle_subscription_deletion(data[ID])
@@ -240,7 +260,7 @@ def manageWebhook(payload, sig_header):
 
 
 def handle_subscription_change(
-    user_id, subscription_status, plan_id, subscription_id, message_limit
+    user_id, subscription_status, plan_id,duration, subscription_id, message_limit
 ):
     subscription = stripe.Subscription.retrieve(subscription_id)
     # Update the subscription to the new plan
@@ -260,11 +280,11 @@ def handle_subscription_change(
     handle_subscription_creation(
         user_id, subscription_status, plan_id, subscription_id, message_limit
     )
-    add_metadata_to_subscription(subscription_id, generateNewMetaData(user_id, plan_id))
+    add_metadata_to_subscription(subscription_id, generateNewMetaData(user_id, plan_id,duration))
 
 
-def generateNewMetaData(user_id, plan_id):
-    return {USER_ID: user_id, PLAN_ID: plan_id}
+def generateNewMetaData(user_id, plan_id,duration):
+    return {USER_ID: user_id, PLAN_ID: plan_id,PRICING_DURATION:duration}
 
 
 def add_metadata_to_subscription(subscription_id, metadata):

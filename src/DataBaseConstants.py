@@ -80,3 +80,7 @@ GPT_4 = "gpt-4"
 
 LIGHT = "light"
 DARK = "dark"
+
+MONTHLY="monthly"
+YEARLY="yearly"
+PRICING_DURATION="duration"
