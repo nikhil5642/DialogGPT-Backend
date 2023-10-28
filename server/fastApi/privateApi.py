@@ -145,7 +145,7 @@ class ReplyModel(BaseChatBotModel):
 
 class SubscriptionModel(BaseModel):
     planId: str
-    duration:str
+    duration: str
 
 
 class ChatBotInterfaceModel(BaseChatBotModel):
@@ -493,7 +493,7 @@ def createCheckoutSessionApi(
     data: SubscriptionModel, current_user: str = Depends(get_current_user)
 ):
     try:
-        session = createStripeCheckoutSession(current_user, data.planId,data.duration)
+        session = createStripeCheckoutSession(current_user, data.planId, data.duration)
         return {SUCCESS: True, RESULT: session}
     except:
         raise HTTPException(status_code=501, detail="Something went wrong, Try Again!")
