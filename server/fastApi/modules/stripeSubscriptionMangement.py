@@ -76,7 +76,6 @@ def getPriceId(plan_id, duration):
 
 
 def createStripeCheckoutSession(user_id, plan_id, duration):
-    print("createStripeCheckoutSession", user_id, plan_id, duration)
     price_id = getPriceId(plan_id, duration)
     old_subscription_id = get_subscription_id(user_id)
     old_subscription_plan = get_subscription_plan(user_id)
