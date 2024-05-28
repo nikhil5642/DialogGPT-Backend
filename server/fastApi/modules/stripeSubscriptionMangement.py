@@ -1,5 +1,9 @@
 from fastapi import HTTPException
 import stripe
+from server.fastApi.modules.awsKeysManagement import (
+    get_currency_layer_api_key,
+    get_stripe_config,
+)
 from server.fastApi.modules.databaseManagement import (
     get_subscription_id,
     get_subscription_plan,
@@ -28,33 +32,23 @@ import requests
 from src.scripts.chatbotUtils import getMessageLimitAsPerPlan
 import time
 
-stripe.api_key = "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"
+stripe_config = get_stripe_config("prod")
 
-SUBSCRIPTION_MONTHLY_PRO = "price_1NmOk6SBubjVCHLvylBtaAiJ"
-SUBSCRIPTION_MONTHLY_ESSENTIALS = "price_1NyDl5SBubjVCHLvz21h4vso"
-SUBSCRIPTION_MONTHLY_BASIC = "price_1NyDofSBubjVCHLvdGoxWpyU"
-SUBSCRIPTION_YEARLY_PRO = "price_1NyUbvSBubjVCHLvVjD6INAr"
-SUBSCRIPTION_YEARLY_ESSENTIALS = "price_1NyUbeSBubjVCHLv097htY9y"
-SUBSCRIPTION_YEARLY_BASIC = "price_1NyUbBSBubjVCHLvm3U6znGh"
-STRIPE_WEBHOOK_SECRET = "whsec_rPIhd8WwG8gFqW5IctFOVcMB7Gxmd2kj"
-CURRENCY_LAYER_API_KEY = "cf717babe6b5b06c2d88c673cf345864"
-WEBSITE_BASE_URL = "https://dialoggpt.io"
+# for testing
+# stripe_config = get_stripe_config("test")
 
-# --------------------------------------------------------------------------------------------
-# Test Keys
-# stripe.api_key = "sk_test_51NlWuWSBubjVCHLvXTVthdf3CsRtD7tCSGXjvzzPDOeCzLg9N8bZfcDAw1NW0VjjxiM1R6acM6grcYdODRETSaLJ007kodrpRe"
+stripe.api_key = stripe_config["api_key"]
+SUBSCRIPTION_MONTHLY_PRO = stripe_config["subscriptions"]["monthly_pro"]
+SUBSCRIPTION_MONTHLY_ESSENTIALS = stripe_config["subscriptions"]["monthly_essentials"]
+SUBSCRIPTION_MONTHLY_BASIC = stripe_config["subscriptions"]["monthly_basic"]
+SUBSCRIPTION_YEARLY_PRO = stripe_config["subscriptions"]["yearly_pro"]
+SUBSCRIPTION_YEARLY_ESSENTIALS = stripe_config["subscriptions"]["yearly_essentials"]
+SUBSCRIPTION_YEARLY_BASIC = stripe_config["subscriptions"]["yearly_basic"]
+STRIPE_WEBHOOK_SECRET = stripe_config["webhook_secret"]
+WEBSITE_BASE_URL = stripe_config["website_base_url"]
 
-# SUBSCRIPTION_MONTHLY_PRO = "price_1Nz3BMSBubjVCHLv7zWrqlcv"
-# SUBSCRIPTION_MONTHLY_ESSENTIALS = "price_1Nz3LhSBubjVCHLvxBZAB2Zm"
-# SUBSCRIPTION_MONTHLY_BASIC = "price_1NypwASBubjVCHLv1vdbTuNu"
-# SUBSCRIPTION_YEARLY_PRO = "price_1O698cSBubjVCHLvBz470hze"
-# SUBSCRIPTION_YEARLY_ESSENTIALS = "price_1O6999SBubjVCHLvF7ghu9wg"
-# SUBSCRIPTION_YEARLY_BASIC = "price_1O697nSBubjVCHLvm5yYvxWd"
-# STRIPE_WEBHOOK_SECRET = "whsec_u1mQ0SXb8IJ0k0XWPhQ1nMW6mXHLA4yi"
-# CURRENCY_LAYER_API_KEY = "cf717babe6b5b06c2d88c673cf345864"
-# WEBSITE_BASE_URL = "http://localhost:3000"
 
-# --------------------------------------------------------------------------------------------
+CURRENCY_LAYER_API_KEY = get_currency_layer_api_key()
 
 
 def getPriceId(plan_id, duration):
