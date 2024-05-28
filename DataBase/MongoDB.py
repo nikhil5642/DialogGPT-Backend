@@ -1,7 +1,8 @@
-
 import os
 
 from pymongo import MongoClient
+
+from server.fastApi.modules.awsKeysManagement import get_mongo_uri
 
 MONGO_DB_NAME = "chatbot_data"
 
@@ -27,10 +28,8 @@ class MongoManager:
         if MongoManager.__instance != None:
             raise Exception("This class is a singleton!")
         else:
-            uri = "mongodb+srv://cluster0.hk8u8le.mongodb.net/?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority"
-            client = MongoClient(uri,
-                                 tls=True,
-                                 tlsCertificateKeyFile=os.path.abspath("./DataBase/mongo.pem"))
+            uri = get_mongo_uri()
+            client = MongoClient(uri)
             MongoManager.__instance = client[MONGO_DB_NAME]
 
 
@@ -41,19 +40,24 @@ def getCollection():
 def getUsersCollection():
     return MongoManager.getInstance()[MongoDBCollections.USERS_COLLECTION]
 
+
 def getChatBotsCollection():
     return MongoManager.getInstance()[MongoDBCollections.CHATBOTS_COLLECTION]
+
 
 def getContentStoreCollection():
     return MongoManager.getInstance()[MongoDBCollections.CONTENT_COLLECTION]
 
+
 def getChatBotConfigCollection():
     return MongoManager.getInstance()[MongoDBCollections.CHATBOTS_CONFIG]
+
 
 def getChatHistoryCollection():
     return MongoManager.getInstance()[MongoDBCollections.CHATBOTS_HISTORY]
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     db = MongoManager.getInstance()
     userInfoCollection = db[MongoDBCollections.USER_INFO_COLLECTION]
     print(userInfoCollection.find_one({"userId": 1}))

@@ -64,3 +64,8 @@ def get_openai_api_key():
 def get_pinecone_config():
     secrets = getAwsSecretKey()
     return secrets["pinecone"]
+
+
+def get_mongo_uri():
+    secrets = getAwsSecretKey()
+    return secrets["mongo_uri"]
