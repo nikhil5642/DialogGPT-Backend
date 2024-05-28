@@ -2,8 +2,12 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-email_sender = "nikhil@dialogGPT.io"
-email_password = "ntuvvxepsiyovdrq"
+from server.fastApi.modules.awsKeysManagement import get_email_config
+
+config = get_email_config()
+email_sender = config["sender"]
+email_password = config["password"]
+
 
 def sendWelcomeEmail(receiver):
     subject = "Welcome To DialogGPT!"
@@ -32,21 +36,22 @@ Nikhil Agrawal<br>
 Founder, DialogGPT<br><br>
 """
 
-    sendEmail(email_sender, receiver, subject, body, msg_type='html')
+    sendEmail(email_sender, receiver, subject, body, msg_type="html")
 
-def sendEmail(sender, receiver, subject, msg, msg_type='plain'):
+
+def sendEmail(sender, receiver, subject, msg, msg_type="plain"):
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
     server.login(email_sender, email_password)
-    
-    msg_mime = MIMEMultipart('alternative')
-    msg_mime['Subject'] = subject
-    msg_mime['From'] = f"DialogGPT <{email_sender}>"
-    msg_mime['To'] = str(receiver)
-    
+
+    msg_mime = MIMEMultipart("alternative")
+    msg_mime["Subject"] = subject
+    msg_mime["From"] = f"DialogGPT <{email_sender}>"
+    msg_mime["To"] = str(receiver)
+
     data = MIMEText(msg, msg_type)
     msg_mime.attach(data)
-    
+
     server.send_message(msg_mime)
     server.quit()
 
@@ -55,4 +60,3 @@ if __name__ == "__main__":
     # print("send email")
     sendWelcomeEmail("nikhilagrawal5642@gmail.com")
     sendWelcomeEmail("support@dialoggpt.io")
-    
