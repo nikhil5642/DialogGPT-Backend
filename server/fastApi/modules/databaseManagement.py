@@ -29,6 +29,7 @@ from src.DataBaseConstants import (
     MESSAGE_USED,
     MODEL,
     MODEL_VERSION,
+    NO_PLAN,
     PROMPT,
     SUBSCRIPTION_CANCELED,
     SUBSCRIPTION_PLAN,
@@ -63,7 +64,6 @@ from src.DataBaseConstants import (
 from src.data_sources.utils import generateContentItem
 from src.emailSender.sendEmail import sendWelcomeEmail
 from src.logger.logger import GlobalLogger
-from typing import List, Dict
 import uuid
 from datetime import datetime
 from src.scripts.chatbotUtils import getChatBotLimitAsPerPlan
@@ -77,7 +77,7 @@ def createUserIfNotExist(uid: str, email: str):
                 EMAIL_ID: email,
                 MESSAGE_USED: 0,
                 MESSAGE_LIMIT: 30,
-                SUBSCRIPTION_PLAN: FREE_PLAN,
+                SUBSCRIPTION_PLAN: NO_PLAN,
                 SUBSCRIPTION_STATUS: COMPLETE,
                 IS_FIRST_TIME_USER: True,
             }
