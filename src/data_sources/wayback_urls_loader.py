@@ -30,7 +30,7 @@ async def get_all_wayback_urls_mapping(
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     f"http://web.archive.org/cdx/search/cdx?url={base_url}/*&output=txt&fl=original&collapse=urlkey",
-                    timeout=aiohttp.ClientTimeout(total=3),
+                    timeout=aiohttp.ClientTimeout(total=30),
                 ) as response:
                     all_urls = (await response.text()).split("\n")
         except Exception as e:
@@ -48,7 +48,7 @@ async def get_all_wayback_urls_mapping(
         def fetch_with_browser(url: str) -> tuple[str, str]:
             browser = None
             try:
-                # print(f"Starting fetch for {url}")
+                print(f"Starting fetch for {url}")
                 browser = browser_pool.get()
                 if not browser:
                     # print(f"No browser available for {url}")
