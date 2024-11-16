@@ -73,7 +73,8 @@ from src.data_sources.urls_loader import (
     isValidUrl,
     update_final_mappings,
 )
-from src.scripts.scrapper import BrowserPool, LazyBrowserPool
+from src.data_sources.wayback_urls_loader import fetch_wayback_urls_api
+from src.scripts.chatbotUtils import getChatBotTrainURLAsPerPlan
 from src.training.consume_model import replyToQuery
 from src.training.train_model import trainChatBot
 
@@ -254,7 +255,11 @@ async def fetchURLs(data: URLModel, current_user: str = Depends(get_current_user
         raise HTTPException(status_code=501, detail="Invalid URL")
 
     try:
-        mapping = await get_all_urls_mapping(data.url, max_depth=5)
+        # mapping = await get_all_urls_mapping(data.url, max_depth=5)
+        current_plan = get_subscription_plan(current_user)
+        mapping = await fetch_wayback_urls_api(
+            data.url, getChatBotTrainURLAsPerPlan(current_plan)
+        )
         contentMappingList = get_filtered_content_mapping(
             current_user, data.botID, mapping
         )

@@ -1,6 +1,17 @@
 from src.DataBaseConstants import ESSENTIALS_PLAN, PRO_PLAN, BASIC_PLAN, MONTHLY
 
 
+def getChatBotTrainURLAsPerPlan(plan):
+    if plan == PRO_PLAN:
+        return 500
+    elif plan == ESSENTIALS_PLAN:
+        return 200
+    elif plan == BASIC_PLAN:
+        return 100
+    else:
+        return 100
+
+
 def getChatBotLimitAsPerPlan(plan):
     if plan == PRO_PLAN:
         return 5
