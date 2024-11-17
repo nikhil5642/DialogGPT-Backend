@@ -5,7 +5,7 @@ import datetime
 
 
 async def main():
-    results = await fetch_wayback_urls_api("https://crmexpertsonline.com", 100)
+    results = await fetch_wayback_urls_api("https://crmexpertsonline.com", 1)
     print(results)
 
 
