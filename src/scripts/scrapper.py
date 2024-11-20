@@ -69,7 +69,7 @@ class BrowserPool:
             return browser
         except Exception as e:
             # Log or print the exception for debugging
-            GlobalLogger().debug(f"Error creating browser: {e}")
+            GlobalLogger().error(f"Error creating browser: {e}")
         # Consider retrying or returning None, then handle this in the calling method
 
     def get(self):
