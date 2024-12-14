@@ -1,5 +1,5 @@
 import asyncio
-from src.data_sources.urls_loader import get_all_urls_mapping
+from src.data_sources.urls_loader_requests import get_all_urls_mapping
 from src.data_sources.wayback_urls_loader import fetch_wayback_urls_api
 
 import datetime
