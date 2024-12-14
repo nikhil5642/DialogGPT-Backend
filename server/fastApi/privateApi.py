@@ -66,10 +66,12 @@ from src.DataBaseConstants import (
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from src.data_sources.text_loader import saveText
-from src.data_sources.urls_loader import (
+from src.data_sources.urls_loader_requests import (
     get_all_urls_mapping,
-    get_filtered_content_mapping,
     get_url_list_mapping,
+)
+from src.data_sources.urls_loader import (
+    get_filtered_content_mapping,
     isValidUrl,
     update_final_mappings,
 )
