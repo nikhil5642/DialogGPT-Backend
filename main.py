@@ -1,11 +1,12 @@
 import asyncio
+from src.data_sources.urls_loader import get_all_urls_mapping
 from src.data_sources.wayback_urls_loader import fetch_wayback_urls_api
 
 import datetime
 
 
 async def main():
-    results = await fetch_wayback_urls_api("https://crmexpertsonline.com", 100)
+    results = await get_all_urls_mapping("https://crmexpertsonline.com", 100)
     print(results)
 
 

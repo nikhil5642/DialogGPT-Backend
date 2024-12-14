@@ -257,9 +257,13 @@ async def fetchURLs(data: URLModel, current_user: str = Depends(get_current_user
     try:
         # mapping = await get_all_urls_mapping(data.url, max_depth=5)
         current_plan = get_subscription_plan(current_user)
-        mapping = await fetch_wayback_urls_api(
+        # mapping = await fetch_wayback_urls_api(
+        #     data.url, getChatBotTrainURLAsPerPlan(current_plan)
+        # )
+        mapping = await get_all_urls_mapping(
             data.url, getChatBotTrainURLAsPerPlan(current_plan)
         )
+
         contentMappingList = get_filtered_content_mapping(
             current_user, data.botID, mapping
         )
