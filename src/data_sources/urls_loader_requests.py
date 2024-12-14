@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin, urlunparse
+import concurrent
 from langchain.docstore.document import Document
 import requests
 from DataBase.MongoDB import getChatBotsCollection
@@ -155,10 +156,14 @@ async def get_url_list_mapping(urls: List[str]) -> Dict[str, str]:
         return {}
 
     scraper = WebScraper()
+    loop = asyncio.get_event_loop()
 
     async def process_url(url: str) -> Tuple[str, Optional[str]]:
-        result = scraper.fetch_url_content(url, url)
-        return url, result.text if result.success else None
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            result = await loop.run_in_executor(
+                executor, scraper.fetch_url_content, url, url
+            )
+            return url, result.text if result.success else None
 
     tasks = [process_url(url) for url in urls]
     results = await asyncio.gather(*tasks)
@@ -175,13 +180,17 @@ async def get_all_urls_mapping(base_url: str, max_depth: int = 5) -> Dict[str, s
     urls_to_visit: List[Tuple[str, int]] = [(resolved_url, 1)]
     url_text_mapping: Dict[str, str] = {}
 
+    # Get event loop for executor
+    loop = asyncio.get_event_loop()
+
     async def process_url_batch(urls: List[str], depth: int) -> List[ScrapingResult]:
-        return await asyncio.gather(
-            *[
-                asyncio.to_thread(scraper.fetch_url_content, url, base_url)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+            # Use run_in_executor instead of to_thread
+            futures = [
+                loop.run_in_executor(executor, scraper.fetch_url_content, url, base_url)
                 for url in urls
             ]
-        )
+            return await asyncio.gather(*futures)
 
     try:
         while urls_to_visit and len(visited_urls) < MAX_URLS:
